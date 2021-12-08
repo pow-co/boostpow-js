@@ -1,6 +1,6 @@
 # Boost POW Javascript Library
 > Boost Proof of Work Protocol
-> https://boostpow.com
+> https://boost.pow.co
 
 Boost is a new type of content ranking system that enables users to increase the amount of energy required to mine or process their content. Users will boost their post as a way to signal to the network that they believe their information is valuable. Boosted posts will appear in the boost feed – ordered by the amount of energy requested for their information.
 
@@ -47,7 +47,7 @@ npm install boostpow --save
 
 **A Protocol for Buying and Selling Proof-of-Work Embedded in Bitcoin Script**
 
-<a href='https://boostpow.com/'>boostpow.com</a>
+<a href='https://boost.pow.co/'>boost.pow.co</a>
 
 Boost is a new type of content ranking system that enables users to increase the amount of energy required to mine or process their content. Users will boost their post as a way to signal to the network that they believe their information is valuable. Boosted posts will appear in the boost feed – ordered by the amount of energy requested for their information.
 
@@ -142,7 +142,7 @@ Create Boost Job Request.
 
 
 ```shell
-curl -X POST https://graph.boostpow.com/api/v1/main/boost/jobs -H 'Content-Type: application/json' \
+curl -X POST https://graph.boost.pow.co/api/v1/main/boost/jobs -H 'Content-Type: application/json' \
 -d '{ "rawtx": "...raw tx hex containing boost output..."}'
 
 ```
@@ -197,7 +197,7 @@ This endpoint retrieves found Boosts matching the search querie
 
 ### HTTP Request
 
-`POST https://graph.boostpow.com/api/v1/main/boost/jobs`
+`POST https://graph.boost.pow.co/api/v1/main/boost/jobs`
 
 ### URL Parameters
 
@@ -207,10 +207,10 @@ rawtx |  Raw boost tx
 
 ## Get Boost Job Status
 
-<a href='https://github.com/MatterPool/boostpow-js/tree/master/test'>See unit tests for more examples</a>
+<a href='https://github.com/ProofOfWorkCompany/boostpow/tree/master/test'>See unit tests for more examples</a>
 
 ```shell
-curl  https://graph.boostpow.com/api/v1/main/boost/jobs/cdd2822902bcc90bd6e4651475e2476034700353e7a0335a42783c1a1050d267
+curl  https://graph.boost.pow.co/api/v1/main/boost/jobs/cdd2822902bcc90bd6e4651475e2476034700353e7a0335a42783c1a1050d267
 
 ```
 
@@ -264,7 +264,7 @@ This endpoint retrieves found Boosts matching the search query
 
 ### HTTP Request
 
-`POST https://graph.boostpow.com/api/v1/main/boost/jobs`
+`POST https://graph.boost.pow.co/api/v1/main/boost/jobs`
 
 ### URL Parameters
 
@@ -284,14 +284,14 @@ Use BoostSignalRanker, BoostSignalSummary, or BoostPowString to do this efficien
 
 See GraphSearchQuery interface below for all the options
 
-<a href='https://graph.boostpow.com/api/v1/main/boost/search?content=hello'>*Find all Boost for content=hello*</a>
+<a href='https://graph.boost.pow.co/api/v1/main/boost/search?content=hello'>*Find all Boost for content=hello*</a>
 
-<a href='https://graph.boostpow.com/api/v1/main/boost/search?content=hello&category=mttr'>*Find all Boost for content=hello in category=mttr*</a>
+<a href='https://graph.boost.pow.co/api/v1/main/boost/search?content=hello&category=mttr'>*Find all Boost for content=hello in category=mttr*</a>
 
-<a href='https://graph.boostpow.com/api/v1/main/boost/search?content=hello&category=mttr&minedTimeFrom=1585869216&minedTimeEnd=1585969216'>*Find array of content in category=mttr after minedTimeFrom=1585869216 and before minedTimeEnd=1585969216</a>
+<a href='https://graph.boost.pow.co/api/v1/main/boost/search?content=hello&category=mttr&minedTimeFrom=1585869216&minedTimeEnd=1585969216'>*Find array of content in category=mttr after minedTimeFrom=1585869216 and before minedTimeEnd=1585969216</a>
 
 ```shell
-curl "https://graph.boostpow.com/api/v1/main/boost/search?content=hello&contenthex=00000000000000000000000000000000000000000000000000000068656c6c6f&minedTimeFrom=0&minedTimeEnd=&category=&categoryhex=&tag=&taghex=&additionaldata=&additionaldatahex=&debug=true&expanded=true&"
+curl "https://graph.boost.pow.co/api/v1/main/boost/search?content=hello&contenthex=00000000000000000000000000000000000000000000000000000068656c6c6f&minedTimeFrom=0&minedTimeEnd=&category=&categoryhex=&tag=&taghex=&additionaldata=&additionaldatahex=&debug=true&expanded=true&"
 ```
 
 ```javascript
@@ -410,7 +410,7 @@ This endpoint retrieves found Boosts matching the search querie
 
 ### HTTP Request
 
-`GET https://graph.boostpow.com/api/v1/main/boost/search?content=hello&contenthex=00000000000000000000000000000000000000000000000000000068656c6c6f&minedTimeFrom=0&minedTimeEnd=&category=&categoryhex=&tag=&taghex=&additionaldata=&additionaldatahex=&debug=true&expanded=true&`
+`GET https://graph.boost.pow.co/api/v1/main/boost/search?content=hello&contenthex=00000000000000000000000000000000000000000000000000000068656c6c6f&minedTimeFrom=0&minedTimeEnd=&category=&categoryhex=&tag=&taghex=&additionaldata=&additionaldatahex=&debug=true&expanded=true&`
 
 ### URL Parameters
 
@@ -636,9 +636,9 @@ Sample:
 
 ## Publish Widget
 
-<a href='https://publish.boostpow.com/docs.html'>Open Docs</a>
+<a href='https://publish.boost.pow.co/docs.html'>Open Docs</a>
 
-<a href='https://publish.boostpow.com'>Sample Boost Widget</a>
+<a href='https://publish.boost.pow.co'>Sample Boost Widget</a>
 
 Boost Publisher Widget is a simple way to boost content from your website.
 
@@ -648,7 +648,7 @@ The simplest Boost Publisher usage looks like this:
 
 ```javascript
 // in HTML
-<script src="https://publish.boostpow.com/publish.js"></script>
+<script src="https://publish.boost.pow.co/publish.js"></script>
 
 // in javascript
 boostPublish.open({
@@ -674,5 +674,5 @@ npm run test
 
 @mxtterpool
 
-https://boostpow.com
+https://boost.pow.co
 
