@@ -5,7 +5,7 @@ const axios_1 = require("axios");
 const boost_pow_job_model_1 = require("./boost-pow-job-model");
 const graph_search_query_1 = require("./graph-search-query");
 const defaultOptions = {
-    graph_api_url: 'https://graph.boostpow.com',
+    graph_api_url: 'https://graph.boost.pow.co',
     api_url: 'https://api.mattercloud.net',
     network: 'main',
     version_path: 'api/v3',

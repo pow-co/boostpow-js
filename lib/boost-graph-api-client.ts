@@ -16,7 +16,7 @@ export interface BoostClientApiClientOptions {
 }
 
 const defaultOptions: BoostClientApiClientOptions = {
-    graph_api_url: 'https://graph.boostpow.com',
+    graph_api_url: 'https://graph.boost.pow.co',
     api_url: 'https://api.mattercloud.net',   // api url
     network: 'main',                          // 'bsv'
     version_path: 'api/v3',                   // Leave as is
