@@ -223,7 +223,9 @@ export class BoostPowJobModel {
       buildOut.add(this.toOpCode(this.minerPubKeyHash.buffer))
     }
 
+
     buildOut.add(this.toOpCode(this.category.buffer))
+
 
     buildOut.add(this.toOpCode(this.content.buffer))
 
