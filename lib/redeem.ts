@@ -1,4 +1,6 @@
-import * as bsv from './bsv'
+import { Opcode } from './bsv/opcode'
+import { Script } from './bsv/script/script'
+import { Transaction } from './bsv/transaction/transaction'
 import { Utils } from './utils'
 import { UInt32Little } from './fields/uint32Little'
 import { Int32Little } from './fields/int32Little'
@@ -156,9 +158,9 @@ export class Redeem {
       return obj
     }
 
-    private toScript(): bsv.Script {
+    private toScript(): Script {
 
-      let buildOut = bsv.Script()
+      let buildOut = Script()
 
       // Add signature
       buildOut.add(this.signature.buffer)
@@ -189,7 +191,7 @@ export class Redeem {
       return buildOut
     }
 
-    static fromTransaction(tx: bsv.Transaction): Redeem | undefined {
+    static fromTransaction(tx: Transaction): Redeem | undefined {
         if (!tx) {
             return undefined
         }
@@ -212,11 +214,11 @@ export class Redeem {
             return undefined
         }
 
-        const tx = new bsv.Transaction(rawtx)
+        const tx = new Transaction(rawtx)
         return Redeem.fromTransaction(tx)
     }
 
-    private static fromScript(script: bsv.Script, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
+    private static fromScript(script: Script, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
       let signature
       let minerPubKey
       let time
@@ -272,9 +274,9 @@ export class Redeem {
 
           // extra Nonce 2
           ((script.chunks[4].buf && script.chunks[4].len <= 20) ||
-              script.chunks[4].opcodenum == bsv.Opcode.OP_0 ||
-              script.chunks[4].opcodenum == bsv.Opcode.OP_1NEGATE ||
-              (script.chunks[4].opcodenum >= bsv.Opcode.OP_1 && script.chunks[6].opcodenum <= bsv.Opcode.OP_16)) &&
+              script.chunks[4].opcodenum == Opcode.OP_0 ||
+              script.chunks[4].opcodenum == Opcode.OP_1NEGATE ||
+              (script.chunks[4].opcodenum >= Opcode.OP_1 && script.chunks[6].opcodenum <= Opcode.OP_16)) &&
 
           // extra Nonce 1
           script.chunks[5].len &&
@@ -317,12 +319,12 @@ export class Redeem {
     }
 
     static fromHex(asm: string, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
-        return Redeem.fromScript(new bsv.Script(asm), txid, vin, spentTxid, spentVout)
+        return Redeem.fromScript(new Script(asm), txid, vin, spentTxid, spentVout)
     }
 
 
     static fromASM(asm: string, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
-        return Redeem.fromScript(new bsv.Script.fromASM(asm), txid, vin, spentTxid, spentVout)
+        return Redeem.fromScript(new Script.fromASM(asm), txid, vin, spentTxid, spentVout)
     }
 
     // Optional attached information if available
@@ -364,7 +366,7 @@ export class Redeem {
     }
 
     static fromBuffer(b: Buffer): Redeem {
-        return Redeem.fromScript(bsv.Script.fromBuffer(b))
+        return Redeem.fromScript(Script.fromBuffer(b))
     }
 
     static fromString(str: string, txid?: string, vin?: number): Redeem {

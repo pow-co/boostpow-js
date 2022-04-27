@@ -275,4 +275,4 @@ BN.fromHex = function (hex, ...args) {
   return BN.fromBuffer(Buffer.from(hex, 'hex'), ...args)
 }
 
-module.exports = BN
+export { BN }

@@ -1,4 +1,11 @@
-import * as bsv from './bsv'
+import { BN } from './bsv/crypto/bn'
+import { Hash } from './bsv/crypto/hash'
+import { Opcode } from './bsv/opcode'
+import { Script } from './bsv/script/script'
+import { Signature } from './bsv/transaction/signature'
+import { Address } from './bsv/address'
+import { PrivateKey } from './bsv/privatekey'
+import { Transaction } from './bsv/transaction/transaction'
 import { Int32Little } from './fields/int32Little'
 import { UInt32Little } from './fields/uint32Little'
 import { UInt16Little } from './fields/uint16Little'
@@ -206,22 +213,22 @@ export class Job {
   private toOpCode(num:Buffer)  {
     if(num.length == 1) {
       if (num[0] >= 1 && num[0] <= 16) {
-        return bsv.Opcode.OP_1 + (num[0] - 1)
+        return Opcode.OP_1 + (num[0] - 1)
       }
       if(num[0] == 0x81) {
-        return bsv.Opcode.OP_1NEGATE
+        return Opcode.OP_1NEGATE
       }
     }
 
     return num
   }
 
-  toScript(): bsv.Script {
-    let buildOut = bsv.Script()
+  toScript(): Script {
+    let buildOut = Script()
 
     buildOut.add(this.toOpCode(Buffer.from('boostpow', 'utf8')))
 
-    buildOut.add(bsv.Opcode.OP_DROP)
+    buildOut.add(Opcode.OP_DROP)
 
     if (this.minerPubKeyHash) {
       buildOut.add(this.toOpCode(this.minerPubKeyHash.buffer))
@@ -274,7 +281,7 @@ export class Job {
     return true
   }
 
-  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: number): Job {
+  private static readScript(script: Script, txid?: string, vout?: number, value?: number): Job {
     let category
     let content
     let diff
@@ -288,7 +295,7 @@ export class Job {
       script.chunks[0].buf.toString('utf8') === 'boostpow' &&
 
       // Drop the identifier
-      script.chunks[1].opcodenum === bsv.Opcode.OP_DROP))
+      script.chunks[1].opcodenum === Opcode.OP_DROP))
       throw new Error('Invalid: no "boostpow" flag')
 
     let is_bounty: boolean
@@ -319,18 +326,18 @@ export class Job {
 
         // Tag
         ((script.chunks[5].buf && script.chunks[5].len <= 20) ||
-          script.chunks[5].opcodenum == bsv.Opcode.OP_0 ||
-          script.chunks[5].opcodenum == bsv.Opcode.OP_1NEGATE ||
-          (script.chunks[5].opcodenum >= bsv.Opcode.OP_1 && script.chunks[5].opcodenum <= bsv.Opcode.OP_16)) &&
+          script.chunks[5].opcodenum == Opcode.OP_0 ||
+          script.chunks[5].opcodenum == Opcode.OP_1NEGATE ||
+          (script.chunks[5].opcodenum >= Opcode.OP_1 && script.chunks[5].opcodenum <= Opcode.OP_16)) &&
 
         // User Nonce
         script.chunks[6].buf &&
         script.chunks[6].len === 4 &&
 
         // Additional Data
-        (script.chunks[7].buf || script.chunks[7].opcodenum == bsv.Opcode.OP_0 ||
-        script.chunks[7].opcodenum == bsv.Opcode.OP_1NEGATE ||
-        (script.chunks[7].opcodenum >= bsv.Opcode.OP_1 && script.chunks[7].opcodenum <= bsv.Opcode.OP_16))
+        (script.chunks[7].buf || script.chunks[7].opcodenum == Opcode.OP_0 ||
+        script.chunks[7].opcodenum == Opcode.OP_1NEGATE ||
+        (script.chunks[7].opcodenum >= Opcode.OP_1 && script.chunks[7].opcodenum <= Opcode.OP_16))
       ) {
         if (Job.remainingOperationsMatchExactly(script.chunks, 8, Job.scriptOperationsV1NoASICBoost())) {
           useGeneralPurposeBits = false
@@ -368,9 +375,9 @@ export class Job {
 
         // Tag
         ((script.chunks[6].buf && script.chunks[6].len <= 20) ||
-          script.chunks[6].opcodenum == bsv.Opcode.OP_0 ||
-          script.chunks[6].opcodenum == bsv.Opcode.OP_1NEGATE ||
-          (script.chunks[6].opcodenum >= bsv.Opcode.OP_1 && script.chunks[6].opcodenum <= bsv.Opcode.OP_16)) &&
+          script.chunks[6].opcodenum == Opcode.OP_0 ||
+          script.chunks[6].opcodenum == Opcode.OP_1NEGATE ||
+          (script.chunks[6].opcodenum >= Opcode.OP_1 && script.chunks[6].opcodenum <= Opcode.OP_16)) &&
 
         // User Nonce
         script.chunks[7].buf &&
@@ -378,9 +385,9 @@ export class Job {
 
         // Additional Data
         (script.chunks[8].buf ||
-        script.chunks[8].opcodenum == bsv.Opcode.OP_0 ||
-        script.chunks[8].opcodenum == bsv.Opcode.OP_1NEGATE ||
-        (script.chunks[8].opcodenum >= bsv.Opcode.OP_1 && script.chunks[8].opcodenum <= bsv.Opcode.OP_16))
+        script.chunks[8].opcodenum == Opcode.OP_0 ||
+        script.chunks[8].opcodenum == Opcode.OP_1NEGATE ||
+        (script.chunks[8].opcodenum >= Opcode.OP_1 && script.chunks[8].opcodenum <= Opcode.OP_16))
       ) {
         if (Job.remainingOperationsMatchExactly(script.chunks, 9, Job.scriptOperationsV1NoASICBoost())) {
           useGeneralPurposeBits = false
@@ -419,20 +426,20 @@ export class Job {
   }
 
   static fromHex(asm: string, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new bsv.Script(asm), txid, vout, value)
+    return Job.readScript(new Script(asm), txid, vout, value)
   }
 
   static fromASM(asm: string, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new bsv.Script.fromASM(asm), txid, vout, value)
+    return Job.readScript(new Script.fromASM(asm), txid, vout, value)
   }
 
   static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new bsv.Script.fromBuffer(b), txid, vout, value)
+    return Job.readScript(new Script.fromBuffer(b), txid, vout, value)
   }
 
   toASM(): string {
     const makeHex = this.toHex()
-    const makeAsm = new bsv.Script(makeHex)
+    const makeAsm = new Script(makeHex)
     return makeAsm.toASM()
   }
 
@@ -446,7 +453,7 @@ export class Job {
 
   toString(): string {
     const makeHex = this.toHex()
-    const makeAsm = new bsv.Script(makeHex)
+    const makeAsm = new Script(makeHex)
     return makeAsm.toString()
   }
 
@@ -481,10 +488,10 @@ export class Job {
   get scriptHash(): string {
     const hex = this.toHex()
     const buffer = Buffer.from(hex, 'hex')
-    return bsv.crypto.Hash.sha256(buffer).reverse().toString('hex')
+    return Hash.sha256(buffer).reverse().toString('hex')
   }
 
-  static fromTransaction(tx: bsv.Transaction, vout: number = 0): Job | undefined {
+  static fromTransaction(tx: Transaction, vout: number = 0): Job | undefined {
     if (!tx) {
       return undefined
     }
@@ -500,7 +507,7 @@ export class Job {
     return undefined
   }
 
-  static fromTransactionGetAllOutputs(tx: bsv.Transaction): Job[] {
+  static fromTransactionGetAllOutputs(tx: Transaction): Job[] {
     if (!tx) {
       return []
     }
@@ -522,7 +529,7 @@ export class Job {
       return undefined
     }
 
-    const tx = new bsv.Transaction(rawtx)
+    const tx = new Transaction(rawtx)
     return Job.fromTransaction(tx, vout)
   }
 
@@ -533,7 +540,7 @@ export class Job {
    * @param boostPowJobProof Boost job proof to use to redeem
    * @param privateKey The private key string of the minerPubKeyHash
    */
-  static createRedeemTransaction(boostPowJob: Job, boostPowJobProof: Redeem, privateKeyStr: string, receiveAddressStr: string): bsv.Transaction | null {
+  static createRedeemTransaction(boostPowJob: Job, boostPowJobProof: Redeem, privateKeyStr: string, receiveAddressStr: string): Transaction | null {
     const boostPowString = Job.tryValidateJobProof(boostPowJob, boostPowJobProof)
     if (!boostPowString) {
       throw new Error('createRedeemTransaction: Invalid Job Proof')
@@ -545,37 +552,37 @@ export class Job {
       throw new Error('createRedeemTransaction: Boost Pow Job requires txid, vout, and value')
     }
 
-    let tx = new bsv.Transaction()
+    let tx = new Transaction()
     tx.addInput(
-      new bsv.Transaction.Input({
-        output: new bsv.Transaction.Output({
+      new Transaction.Input({
+        output: new Transaction.Output({
           script: boostPowJob.toScript(),
           satoshis: boostPowJob.value
         }),
         prevTxId: boostPowJob.txid,
         outputIndex: boostPowJob.vout,
-        script: bsv.Script.empty()
+        script: Script.empty()
       })
     )
 
-    const privKey = new bsv.PrivateKey(privateKeyStr)
-    const sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID
-    const flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
+    const privKey = new PrivateKey(privateKeyStr)
+    const sigtype = Signature.SIGHASH_ALL | Signature.SIGHASH_FORKID
+    const flags = Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
+      Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
+      Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+      Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
 
     const receiveSats = boostPowJob.value !== undefined ? boostPowJob.value : 0
-    tx.addOutput(new bsv.Transaction.Output({
-      script: bsv.Script(new bsv.Address(receiveAddressStr)),
+    tx.addOutput(new Transaction.Output({
+      script: Script(new Address(receiveAddressStr)),
       satoshis: receiveSats ? receiveSats - 517 : 0 //subtract miner fee
     }))
 
-    const signature = bsv.Transaction.Sighash.sign(tx,
+    const signature = Transaction.Sighash.sign(tx,
       privKey, sigtype, 0, tx.inputs[0].output.script,
-      new bsv.crypto.BN(tx.inputs[0].output.satoshis), flags)
+      new BN(tx.inputs[0].output.satoshis), flags)
 
-    const unlockingScript = new bsv.Script({})
+    const unlockingScript = new Script({})
     unlockingScript
       .add(
         Buffer.concat([
@@ -731,179 +738,179 @@ export class Job {
   static scriptOperationsV1NoASICBoost() {
     return [
       // CAT SWAP
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_SWAP,
+      Opcode.OP_CAT,
+      Opcode.OP_SWAP,
 
       // {5} ROLL DUP TOALTSTACK CAT                // copy mining pool’s pubkey hash to alt stack. A copy remains on the stack.
-      bsv.Opcode.OP_5,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_5,
+      Opcode.OP_ROLL,
+      Opcode.OP_DUP,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_CAT,
 
       // {2} PICK TOALTSTACK                         // copy target and push to altstack.
-      bsv.Opcode.OP_2,
-      bsv.Opcode.OP_PICK,
-      bsv.Opcode.OP_TOALTSTACK,
+      Opcode.OP_2,
+      Opcode.OP_PICK,
+      Opcode.OP_TOALTSTACK,
 
       // {5} ROLL SIZE {4} EQUALVERIFY CAT          // check size of extra_nonce_1
-      bsv.Opcode.OP_5,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_5,
+      Opcode.OP_ROLL,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // {5} ROLL SIZE {8} EQUALVERIFY CAT          // check size of extra_nonce_2
-      bsv.Opcode.OP_5,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_8,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_5,
+      Opcode.OP_ROLL,
+      Opcode.OP_SIZE,
+      Opcode.OP_8,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // SWAP CAT HASH256                           // create metadata string and hash it.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_HASH256,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
+      Opcode.OP_HASH256,
 
       // SWAP TOALTSTACK CAT CAT                    // target to altstack.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_CAT,
+      Opcode.OP_CAT,
 
       // SWAP SIZE {4} EQUALVERIFY CAT              // check size of timestamp.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // FROMALTSTACK CAT                           // attach target
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_CAT,
 
       // SWAP SIZE {4} EQUALVERIFY CAT             // check size of nonce. Boost POW string is constructed.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // Take hash of work string and ensure that it is positive and minimally encoded.
-      bsv.Opcode.OP_HASH256, ...Job.ensure_positive(),
+      Opcode.OP_HASH256, ...Job.ensure_positive(),
 
-      bsv.Opcode.OP_FROMALTSTACK, ...Job.expand_target(), ...Job.ensure_positive(),
+      Opcode.OP_FROMALTSTACK, ...Job.expand_target(), ...Job.ensure_positive(),
 
       // check that the hash of the Boost POW string is less than the target
-      bsv.Opcode.OP_LESSTHAN,
-      bsv.Opcode.OP_VERIFY,
+      Opcode.OP_LESSTHAN,
+      Opcode.OP_VERIFY,
 
       // check that the given address matches the pubkey and check signature.
       // DUP HASH160 FROMALTSTACK EQUALVERIFY CHECKSIG
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_HASH160,
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CHECKSIG,
+      Opcode.OP_DUP,
+      Opcode.OP_HASH160,
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CHECKSIG,
     ]
   }
 
   static scriptOperationsV2ASICBoost() {
     return [
       // CAT SWAP
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_SWAP,
+      Opcode.OP_CAT,
+      Opcode.OP_SWAP,
 
       // {5} ROLL DUP TOALTSTACK CAT                // copy mining pool’s pubkey hash to alt stack. A copy remains on the stack.
-      bsv.Opcode.OP_5,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_5,
+      Opcode.OP_ROLL,
+      Opcode.OP_DUP,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_CAT,
 
       // {2} PICK TOALTSTACK                         // copy target and push to altstack.
-      bsv.Opcode.OP_2,
-      bsv.Opcode.OP_PICK,
-      bsv.Opcode.OP_TOALTSTACK,
+      Opcode.OP_2,
+      Opcode.OP_PICK,
+      Opcode.OP_TOALTSTACK,
 
       // {6} ROLL SIZE {4} EQUALVERIFY CAT          // check size of extra_nonce_1
-      bsv.Opcode.OP_6,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_6,
+      Opcode.OP_ROLL,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // {6} ROLL SIZE {8} EQUALVERIFY CAT          // check size of extra_nonce_2
-      bsv.Opcode.OP_6,
-      bsv.Opcode.OP_ROLL,
-      bsv.Opcode.OP_SIZE,
+      Opcode.OP_6,
+      Opcode.OP_ROLL,
+      Opcode.OP_SIZE,
       Buffer.from("0120", "hex"),                   // push 32 to the stack.
-      bsv.Opcode.OP_GREATERTHANOREQUAL,
-      bsv.Opcode.OP_VERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_GREATERTHANOREQUAL,
+      Opcode.OP_VERIFY,
+      Opcode.OP_CAT,
 
       // SWAP CAT HASH256                           // create metadata string and hash it.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_HASH256,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
+      Opcode.OP_HASH256,
 
       // SWAP TOALTSTACK CAT CAT                    // target and content + merkleroot to altstack.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_TOALTSTACK,
+      Opcode.OP_SWAP,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_CAT,
+      Opcode.OP_TOALTSTACK,
 
       Buffer.from("ff1f00e0", "hex"),               // combine version/category with general purpose bits.
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_INVERT,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_AND,
+      Opcode.OP_DUP,
+      Opcode.OP_INVERT,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_AND,
 
-      bsv.Opcode.OP_SWAP,                           // general purpose bits
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_AND,
-      bsv.Opcode.OP_OR,
+      Opcode.OP_SWAP,                           // general purpose bits
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_AND,
+      Opcode.OP_OR,
 
-      bsv.Opcode.OP_FROMALTSTACK,                   // attach content + merkleroot
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_FROMALTSTACK,                   // attach content + merkleroot
+      Opcode.OP_CAT,
 
       // SWAP SIZE {4} EQUALVERIFY CAT              // check size of timestamp.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // FROMALTSTACK CAT                           // attach target
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_CAT,
 
       // SWAP SIZE {4} EQUALVERIFY CAT             // check size of nonce. Boost POW string is constructed.
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CAT,
 
       // Take hash of work string and ensure that it is positive and minimally encoded.
-      bsv.Opcode.OP_HASH256, ...Job.ensure_positive(),
+      Opcode.OP_HASH256, ...Job.ensure_positive(),
 
-      bsv.Opcode.OP_FROMALTSTACK, ...Job.expand_target(), ...Job.ensure_positive(),
+      Opcode.OP_FROMALTSTACK, ...Job.expand_target(), ...Job.ensure_positive(),
 
       // check that the hash of the Boost POW string is less than the target
-      bsv.Opcode.OP_LESSTHAN,
-      bsv.Opcode.OP_VERIFY,
+      Opcode.OP_LESSTHAN,
+      Opcode.OP_VERIFY,
 
       // check that the given address matches the pubkey and check signature.
       // DUP HASH160 FROMALTSTACK EQUALVERIFY CHECKSIG
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_HASH160,
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_CHECKSIG,
+      Opcode.OP_DUP,
+      Opcode.OP_HASH160,
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_CHECKSIG,
     ]
   }
 
@@ -912,31 +919,31 @@ export class Job {
   */
   static expand_target() {
     return [
-      bsv.Opcode.OP_SIZE,
-      bsv.Opcode.OP_4,
-      bsv.Opcode.OP_EQUALVERIFY,
-      bsv.Opcode.OP_3,
-      bsv.Opcode.OP_SPLIT,
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_BIN2NUM,
-      bsv.Opcode.OP_3,
+      Opcode.OP_SIZE,
+      Opcode.OP_4,
+      Opcode.OP_EQUALVERIFY,
+      Opcode.OP_3,
+      Opcode.OP_SPLIT,
+      Opcode.OP_DUP,
+      Opcode.OP_BIN2NUM,
+      Opcode.OP_3,
       Buffer.from('21', 'hex'),   // actually 33, but in hex
-      bsv.Opcode.OP_WITHIN,
-      bsv.Opcode.OP_VERIFY,
-      bsv.Opcode.OP_TOALTSTACK,
-      bsv.Opcode.OP_DUP,
-      bsv.Opcode.OP_BIN2NUM,
-      bsv.Opcode.OP_0,
-      bsv.Opcode.OP_GREATERTHAN,
-      bsv.Opcode.OP_VERIFY,
+      Opcode.OP_WITHIN,
+      Opcode.OP_VERIFY,
+      Opcode.OP_TOALTSTACK,
+      Opcode.OP_DUP,
+      Opcode.OP_BIN2NUM,
+      Opcode.OP_0,
+      Opcode.OP_GREATERTHAN,
+      Opcode.OP_VERIFY,
       Buffer.from('0000000000000000000000000000000000000000000000000000000000', 'hex'),
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_FROMALTSTACK,
-      bsv.Opcode.OP_3,
-      bsv.Opcode.OP_SUB,
-      bsv.Opcode.OP_8,
-      bsv.Opcode.OP_MUL,
-      bsv.Opcode.OP_RSHIFT,
+      Opcode.OP_CAT,
+      Opcode.OP_FROMALTSTACK,
+      Opcode.OP_3,
+      Opcode.OP_SUB,
+      Opcode.OP_8,
+      Opcode.OP_MUL,
+      Opcode.OP_RSHIFT,
     ]
   }
 
@@ -946,199 +953,199 @@ export class Job {
   static ensure_positive() {
     return [
       Buffer.from('00', 'hex'),
-      bsv.Opcode.OP_CAT,
-      bsv.Opcode.OP_BIN2NUM
+      Opcode.OP_CAT,
+      Opcode.OP_BIN2NUM
     ]
   }
 
   // reverse endianness. Cuz why not?
   static reverse32() {
     return [
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_1,
-      bsv.Opcode.OP_SPLIT,
+      Opcode.OP_1,
+      Opcode.OP_SPLIT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
 
-      bsv.Opcode.OP_SWAP,
-      bsv.Opcode.OP_CAT,
+      Opcode.OP_SWAP,
+      Opcode.OP_CAT,
     ]
   }
 }

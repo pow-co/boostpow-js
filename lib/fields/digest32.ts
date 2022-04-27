@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import { BN } from '../bsv/crypto/bn'
 import { Utils } from '../utils'
 
 export class Digest32 {
@@ -17,8 +17,8 @@ export class Digest32 {
     return Buffer.from(this.data).reverse().toString('hex')
   }
 
-  get number(): bsv.crypto.BN {
-    return new bsv.crypto.BN(this.hex, 'hex', 'be')
+  get number(): BN {
+    return new BN(this.hex, 'hex', 'be')
   }
 
   get buffer(): Buffer {

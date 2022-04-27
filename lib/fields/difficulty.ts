@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import { BN } from '../bsv/crypto/bn'
 import { Utils } from '../utils'
 import { UInt32Little } from './uint32Little'
 
@@ -43,7 +43,7 @@ export class Difficulty {
     return this.hex
   }
 
-  get target(): bsv.crypto.BN {
+  get target(): BN {
     return Utils.getTargetDifficulty(this.bits)
   }
 }

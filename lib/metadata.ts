@@ -1,4 +1,4 @@
-import * as bsv from './bsv'
+import { Hash } from './bsv/crypto/hash'
 import { Utils } from './utils'
 import { UInt32Little } from './fields/uint32Little'
 import { UInt32Big } from './fields/uint32Big'
@@ -86,7 +86,7 @@ export class Metadata {
     }
 
     get hash(): Digest32 {
-        return new Digest32(bsv.crypto.Hash.sha256sha256(this.toBuffer()))
+        return new Digest32(Hash.sha256sha256(this.toBuffer()))
     }
 
     toString(): string {

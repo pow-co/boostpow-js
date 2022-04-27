@@ -1,10 +1,12 @@
-import * as bsv from './bsv'
+import { BN } from './bsv/crypto/bn'
+import { Hash } from './bsv/crypto/hash'
+import { Opcode } from './bsv/opcode'
 
 export class Utils {
 
   static getSha256(str, encoding: 'utf8' | 'hex' = 'utf8') {
     const hashed = Buffer.from(str, encoding)
-    const h = bsv.crypto.Hash.sha256(hashed).toString('hex')
+    const h = Hash.sha256(hashed).toString('hex')
     return h
   }
 
@@ -49,11 +51,11 @@ export class Utils {
    * @param {Number} bits
    * @returns {BN} An instance of BN with the decoded difficulty bits
    */
-  public static getTargetDifficulty(bits: number): bsv.crypto.BN {
-    var target = new bsv.crypto.BN(bits & 0xffffff)
+  public static getTargetDifficulty(bits: number): BN {
+    var target = new BN(bits & 0xffffff)
     var mov = ((bits >>> 24) - 3)
     while (mov-- > 0) {
-      target = target.mul(new bsv.crypto.BN(256))
+      target = target.mul(new BN(256))
     }
     return target
   }
@@ -77,7 +79,7 @@ export class Utils {
       return parseFloat(difficulty1TargetBN.toString(10)) / parseFloat(currentTargetBN.toString(10))
     }
 
-    var difficultyString = difficulty1TargetBN.mul(new bsv.crypto.BN(Math.pow(10, 8))).div(currentTargetBN).toString(10)
+    var difficultyString = difficulty1TargetBN.mul(new BN(Math.pow(10, 8))).div(currentTargetBN).toString(10)
     var decimalPos = difficultyString.length - 8
     difficultyString = difficultyString.slice(0, decimalPos) + '.' + difficultyString.slice(decimalPos)
     return parseFloat(difficultyString)
@@ -135,11 +137,11 @@ export class Utils {
   }
 
   static fromOpCode(chunk) : Buffer {
-    if(chunk.opcodenum >= bsv.Opcode.OP_1 && chunk.opcodenum <= bsv.Opcode.OP_16) {
-      return Buffer.from([(chunk.opcodenum - bsv.Opcode.OP_1) + 1])
-    } else if(chunk.opcodenum == bsv.Opcode.OP_0) {
+    if(chunk.opcodenum >= Opcode.OP_1 && chunk.opcodenum <= Opcode.OP_16) {
+      return Buffer.from([(chunk.opcodenum - Opcode.OP_1) + 1])
+    } else if(chunk.opcodenum == Opcode.OP_0) {
       return Buffer.from([])
-    } else if(chunk.opcodenum == bsv.Opcode.OP_1NEGATE) {
+    } else if(chunk.opcodenum == Opcode.OP_1NEGATE) {
       return Buffer.from([0x81])
     } else {
       return chunk.buf

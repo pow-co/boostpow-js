@@ -1,7 +1,7 @@
 "use strict"
 var expect = require("chai").expect
 var index = require("../")
-var bsv = require("../lib/bsv")
+var bsv = require("../lib/bsv/publickey")
 
 describe("boost #BoostPowJobProof", () => {
   it("should success create hex ", async () => {

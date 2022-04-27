@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import { BlockHeader } from '../bsv/block/blockheader'
 import { Int32Little } from '../fields/int32Little'
 import { UInt32Little } from '../fields/uint32Little'
 import { UInt16Little } from '../fields/uint16Little'
@@ -8,7 +8,7 @@ import { Utils } from '../utils'
 export class PowString {
     private _blockheader
 
-    constructor(blockheader: bsv.BlockHeader) {
+    constructor(blockheader: BlockHeader) {
         this._blockheader = blockheader
     }
 
@@ -59,17 +59,17 @@ export class PowString {
     }
 
     static fromBuffer (buf): PowString {
-        return new PowString(bsv.BlockHeader.fromBuffer(buf))
+        return new PowString(BlockHeader.fromBuffer(buf))
     }
 
     static fromString(str): PowString {
         var buf = Buffer.from(str, 'hex')
-        return new PowString(bsv.BlockHeader.fromBuffer(buf))
+        return new PowString(BlockHeader.fromBuffer(buf))
     }
 
     static fromHex(str): PowString {
         var buf = Buffer.from(str, 'hex')
-        return new PowString(bsv.BlockHeader.fromBuffer(buf))
+        return new PowString(BlockHeader.fromBuffer(buf))
     }
 
     static fromObject(obj): PowString {
@@ -81,7 +81,7 @@ export class PowString {
             time: obj.time,
             nonce: obj.nonce,
         }
-        return new PowString(bsv.BlockHeader.fromObject(spoofedObj))
+        return new PowString(BlockHeader.fromObject(spoofedObj))
     }
 
     toBuffer () {

@@ -1,7 +1,7 @@
 "use strict"
 var expect = require("chai").expect
 var index = require("../")
-var bsv = require("../lib/bsv")
+var bsv = require("../lib/bsv/crypto/hash")
 
 describe("boost #BoostPowMetadata tests", () => {
   it("should success create", async () => {
@@ -153,7 +153,7 @@ describe("boost #BoostPowJob createBoostPowMetadata", () => {
     const expectedMerkleRootMetaHash =
       "fc6bee7b4b3be794c6f2a9a9e04786ec8ccedf118b31e3739e919e4e2841c484"
     expect(
-      bsv.crypto.Hash.sha256sha256(
+      bsv.Hash.sha256sha256(
         index.BoostPowJob.createBoostPowMetadata(job, jobProof).toBuffer()
       )
         .reverse()

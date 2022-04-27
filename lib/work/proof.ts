@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import { BlockHeader } from '../bsv/block/blockheader'
 import { Int32Little } from '../fields/int32Little'
 import { UInt32Little } from '../fields/uint32Little'
 import { UInt32Big } from '../fields/uint32Big'
@@ -58,7 +58,7 @@ export function pow_string(p: Puzzle, x: Solution): PowString | undefined {
 
   const boostPowMetadataCoinbaseString = meta(p, x)
 
-  return new PowString(bsv.BlockHeader.fromBuffer(Buffer.concat([
+  return new PowString(BlockHeader.fromBuffer(Buffer.concat([
     category,
     p.Content.buffer,
     boostPowMetadataCoinbaseString.hash256.buffer,
