@@ -160,7 +160,7 @@ export class Redeem {
 
     private toScript(): Script {
 
-      let buildOut = Script()
+      let buildOut = new Script()
 
       // Add signature
       buildOut.add(this.signature.buffer)
@@ -324,7 +324,7 @@ export class Redeem {
 
 
     static fromASM(asm: string, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
-        return Redeem.fromScript(new Script.fromASM(asm), txid, vin, spentTxid, spentVout)
+        return Redeem.fromScript(Script.fromASM(asm), txid, vin, spentTxid, spentVout)
     }
 
     // Optional attached information if available
@@ -361,7 +361,7 @@ export class Redeem {
         return this.toScript().toString()
     }
 
-    toBuffer(): Bytes {
+    toBuffer(): Buffer {
         return this.toScript().toBuffer()
     }
 

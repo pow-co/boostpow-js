@@ -1,10 +1,10 @@
 'use strict'
 
-var Address = require('../address')
+import {Address} from '../address'
 var BufferReader = require('../encoding/bufferreader')
-var BufferWriter = require('../encoding/bufferwriter')
-var Hash = require('../crypto/hash')
-var Opcode = require('../opcode')
+import {BufferWriter} from '../encoding/bufferwriter'
+import {Hash} from '../crypto/hash'
+import {Opcode} from '../opcode'
 var PublicKey = require('../publickey')
 var Signature = require('../crypto/signature')
 var Networks = require('../networks')
@@ -13,6 +13,8 @@ var _ = require('../util/_')
 var errors = require('../errors')
 var buffer = require('buffer')
 var JSUtil = require('../util/javas')
+
+interface scriptJSON {}
 
 /**
  * A bitcoin transaction script. Each transaction's inputs and outputs
@@ -25,14 +27,11 @@ var JSUtil = require('../util/javas')
  */
 export class Script {
   public chunks
-  public types
+  static types
 
   public OP_RETURN_STANDARD_SIZE: number = 220
 
-  constructor(from) {
-    if (!(this instanceof Script)) {
-      return new Script(from)
-    }
+  constructor(from ?: Buffer | Address | Script | string | scriptJSON ) {
     this.chunks = []
 
     if (Buffer.isBuffer(from)) {
@@ -46,19 +45,6 @@ export class Script {
     } else if (_.isObject(from) && _.isArray(from.chunks)) {
       this.set(from)
     }
-
-    this.types = {}
-    this.types.UNKNOWN = 'Unknown'
-    this.types.PUBKEY_OUT = 'Pay to public key'
-    this.types.PUBKEY_IN = 'Spend from public key'
-    this.types.PUBKEYHASH_OUT = 'Pay to public key hash'
-    this.types.PUBKEYHASH_IN = 'Spend from public key hash'
-    this.types.SCRIPTHASH_OUT = 'Pay to script hash'
-    this.types.SCRIPTHASH_IN = 'Spend from script hash'
-    this.types.MULTISIG_OUT = 'Pay to multisig'
-    this.types.MULTISIG_IN = 'Spend from multisig'
-    this.types.DATA_OUT = 'Data push'
-    this.types.SAFE_DATA_OUT = 'Safe data push'
 /*
   Script.outputIdentifiers = {}
   Script.outputIdentifiers.PUBKEY_OUT = Script.prototype.isPublicKeyOut
@@ -1154,3 +1140,16 @@ export class Script {
     return n
   }
 }
+
+Script.types = {}
+Script.types.UNKNOWN = 'Unknown'
+Script.types.PUBKEY_OUT = 'Pay to public key'
+Script.types.PUBKEY_IN = 'Spend from public key'
+Script.types.PUBKEYHASH_OUT = 'Pay to public key hash'
+Script.types.PUBKEYHASH_IN = 'Spend from public key hash'
+Script.types.SCRIPTHASH_OUT = 'Pay to script hash'
+Script.types.SCRIPTHASH_IN = 'Spend from script hash'
+Script.types.MULTISIG_OUT = 'Pay to multisig'
+Script.types.MULTISIG_IN = 'Spend from multisig'
+Script.types.DATA_OUT = 'Data push'
+Script.types.SAFE_DATA_OUT = 'Safe data push'

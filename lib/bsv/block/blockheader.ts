@@ -3,8 +3,8 @@
 var _ = require('../util/_')
 import { BN } from '../crypto/bn'
 var BufferReader = require('../encoding/bufferreader')
-var BufferWriter = require('../encoding/bufferwriter')
-var Hash = require('../crypto/hash')
+import { BufferWriter } from '../encoding/bufferwriter'
+import { Hash } from '../crypto/hash'
 var $ = require('../util/preconditions')
 
 var GENESIS_BITS = 0x1d00ffff
@@ -34,7 +34,7 @@ export class BlockHeader {
   public time
   public bits
   public nonce
-  public hash
+  public _id
 
   /**
   * @param {Object} - A JSON string
@@ -221,8 +221,8 @@ export class BlockHeader {
    * @param {Number} bits
    * @returns {BN} An instance of BN with the decoded difficulty bits
    */
-  getTargetDifficulty(bits): BN {
-    bits = bits || this.bits
+  getTargetDifficulty(bits?:number): BN {
+    if (!bits) bits = this.bits
 
     var target = new BN(bits & 0xffffff)
     var mov = 8 * ((bits >>> 24) - 3)
@@ -254,20 +254,17 @@ export class BlockHeader {
     var buf = this.toBuffer()
     return Hash.sha256sha256(buf)
   }
-/*
-var idProperty = {
-  configurable: false,
-  enumerable: true,
-  get: function (): string {
+
+  get hash() {
     if (!this._id) {
       this._id = BufferReader(this._getHash()).readReverse().toString('hex')
     }
     return this._id
-  },
-  set: _.noop
-}
-Object.defineProperty(BlockHeader.prototype, 'id', idProperty)
-Object.defineProperty(BlockHeader.prototype, 'hash', idProperty)*/
+  }
+
+  get id() {
+    return this.hash()
+  }
 
   /**
    * @returns {Boolean} - If timestamp is not too far in the future

@@ -1,6 +1,6 @@
 'use strict'
 
-var BN = require('bn.js')
+export var BN = require('bn.js')
 var $ = require('../util/preconditions')
 var _ = require('../util/_')
 
@@ -274,5 +274,3 @@ BN.prototype.toHex = function (...args) {
 BN.fromHex = function (hex, ...args) {
   return BN.fromBuffer(Buffer.from(hex, 'hex'), ...args)
 }
-
-export { BN }

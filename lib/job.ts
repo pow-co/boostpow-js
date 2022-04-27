@@ -224,7 +224,7 @@ export class Job {
   }
 
   toScript(): Script {
-    let buildOut = Script()
+    let buildOut = new Script()
 
     buildOut.add(this.toOpCode(Buffer.from('boostpow', 'utf8')))
 
@@ -430,11 +430,11 @@ export class Job {
   }
 
   static fromASM(asm: string, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new Script.fromASM(asm), txid, vout, value)
+    return Job.readScript(Script.fromASM(asm), txid, vout, value)
   }
 
   static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new Script.fromBuffer(b), txid, vout, value)
+    return Job.readScript(Script.fromBuffer(b), txid, vout, value)
   }
 
   toASM(): string {
@@ -574,7 +574,7 @@ export class Job {
 
     const receiveSats = boostPowJob.value !== undefined ? boostPowJob.value : 0
     tx.addOutput(new Transaction.Output({
-      script: Script(new Address(receiveAddressStr)),
+      script: new Script(new Address(receiveAddressStr)),
       satoshis: receiveSats ? receiveSats - 517 : 0 //subtract miner fee
     }))
 
