@@ -222,10 +222,10 @@ export class BlockHeader {
    * @returns {BN} An instance of BN with the decoded difficulty bits
    */
   getTargetDifficulty(bits?:number): BN {
-    if (!bits) bits = this.bits
+    let b: number = bits ? bits : this.bits
 
-    var target = new BN(bits & 0xffffff)
-    var mov = 8 * ((bits >>> 24) - 3)
+    var target = new BN(b & 0xffffff)
+    var mov = 8 * ((b >>> 24) - 3)
     while (mov-- > 0) {
       target = target.mul(new BN(2))
     }

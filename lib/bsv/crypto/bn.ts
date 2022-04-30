@@ -151,7 +151,7 @@ BN.prototype.toSMBigEndian = function () {
     }
   }
 
-  if (buf.length === 1 & buf[0] === 0) {
+  if (buf.length === 1 && buf[0] === 0) {
     buf = Buffer.from([])
   }
   return buf

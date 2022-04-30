@@ -10,10 +10,10 @@ var BufferReader = require('../encoding/bufferreader')
 var BufferWriter = require('../encoding/bufferwriter')
 var Varint = require('../encoding/varint')
 import { Hash } from '../crypto/hash'
-var Signature = require('../crypto/signature')
+import { Signature } from '../crypto/signature'
 var Sighash = require('./sighash')
 
-var Address = require('../address')
+import {Address} from '../address'
 var UnspentOutput = require('./unspentoutput')
 var Input = require('./input')
 var PublicKeyHashInput = Input.PublicKeyHash
@@ -30,7 +30,10 @@ interface txJSON {
   version: any,
   inputs: any,
   outputs: any,
-  nLockTime: any
+  nLockTime: any,
+  changeScript?: any,
+  changeIndex?: any,
+  fee?: any
 }
 
 /**
@@ -76,9 +79,9 @@ export class Transaction {
     }
   }
 
-  CURRENT_VERSION = 1
-  DEFAULT_NLOCKTIME = 0
-  MAX_BLOCK_SIZE = 1000000
+  static CURRENT_VERSION = 1
+  static DEFAULT_NLOCKTIME = 0
+  static MAX_BLOCK_SIZE = 1000000
 
   // Minimum amount for an output for it not to be considered a dust output
   static DUST_AMOUNT = 546
@@ -319,7 +322,7 @@ export class Transaction {
     return this
   }
 
-  toJSON() {
+  toJSON(): txJSON {
     var inputs = []
     this.inputs.forEach(function (input) {
       inputs.push(input.toObject())
@@ -333,25 +336,19 @@ export class Transaction {
       version: this.version,
       inputs: inputs,
       outputs: outputs,
-      nLockTime: this.nLockTime
-    }
-    if (this._changeScript) {
-      obj.changeScript = this._changeScript.toString()
-    }
-    if (!_.isUndefined(this._changeIndex)) {
-      obj.changeIndex = this._changeIndex
-    }
-    if (!_.isUndefined(this._fee)) {
-      obj.fee = this._fee
+      nLockTime: this.nLockTime,
+      changeScript: this._changeScript,
+      changeIndex: this._changeIndex,
+      fee: this._fee
     }
     return obj
   }
 
-  toObject() {
-    return toJSON()
+  toObject(): txJSON {
+    return this.toJSON()
   }
 
-  fromObject(arg) {
+  fromObject(arg: txJSON) {
     $.checkArgument(_.isObject(arg) || arg instanceof Transaction)
     var self = this
     var transaction
@@ -484,8 +481,8 @@ export class Transaction {
   }
 
   _newTransaction() {
-    this.version = CURRENT_VERSION
-    this.nLockTime = DEFAULT_NLOCKTIME
+    this.version = Transaction.CURRENT_VERSION
+    this.nLockTime = Transaction.DEFAULT_NLOCKTIME
   }
 
   /* Transaction creation interface */
@@ -1186,7 +1183,7 @@ export class Transaction {
     }
 
     // Size limits
-    if (this.toBuffer().length > MAX_BLOCK_SIZE) {
+    if (this.toBuffer().length > Transaction.MAX_BLOCK_SIZE) {
       return 'transaction over the maximum block size'
     }
 

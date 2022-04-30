@@ -3,6 +3,8 @@
 var assert = require('assert')
 
 export class BufferWriter {
+  bufLen: number
+  bufs
   constructor(obj?:BufferWriter) {
     this.bufLen = 0
     if (obj) { this.set(obj) } else { this.bufs = [] }
@@ -14,7 +16,7 @@ export class BufferWriter {
     return this
   }
 
-  toBuffer() {
+  toBuffer(): BufferWriter {
     return this.concat()
   }
 
@@ -22,81 +24,81 @@ export class BufferWriter {
     return Buffer.concat(this.bufs, this.bufLen)
   }
 
-  write(buf) {
+  write(buf): BufferWriter {
     assert(Buffer.isBuffer(buf))
     this.bufs.push(buf)
     this.bufLen += buf.length
     return this
   }
 
-  writeReverse(buf) {
+  writeReverse(buf): BufferWriter {
     assert(Buffer.isBuffer(buf))
     this.bufs.push(Buffer.from(buf).reverse())
     this.bufLen += buf.length
     return this
   }
 
-  writeUInt8(n) {
+  writeUInt8(n): BufferWriter {
     var buf = Buffer.alloc(1)
     buf.writeUInt8(n, 0)
     this.write(buf)
     return this
   }
 
-  writeUInt16BE(n) {
+  writeUInt16BE(n): BufferWriter {
     var buf = Buffer.alloc(2)
     buf.writeUInt16BE(n, 0)
     this.write(buf)
     return this
   }
 
-  writeUInt16LE(n) {
+  writeUInt16LE(n): BufferWriter {
     var buf = Buffer.alloc(2)
     buf.writeUInt16LE(n, 0)
     this.write(buf)
     return this
   }
 
-  writeUInt32BE(n) {
+  writeUInt32BE(n): BufferWriter {
     var buf = Buffer.alloc(4)
     buf.writeUInt32BE(n, 0)
     this.write(buf)
     return this
   }
 
-  writeInt32LE(n) {
+  writeInt32LE(n): BufferWriter {
     var buf = Buffer.alloc(4)
     buf.writeInt32LE(n, 0)
     this.write(buf)
     return this
   }
 
-  writeUInt32LE(n) {
+  writeUInt32LE(n): BufferWriter {
     var buf = Buffer.alloc(4)
     buf.writeUInt32LE(n, 0)
     this.write(buf)
     return this
   }
 
-  writeUInt64BEBN(bn) {
+  writeUInt64BEBN(bn): BufferWriter {
     var buf = bn.toBuffer({ size: 8 })
     this.write(buf)
     return this
   }
 
-  writeUInt64LEBN = function (bn) {
+  writeUInt64LEBN(bn): BufferWriter {
     var buf = bn.toBuffer({ size: 8 })
     this.writeReverse(buf)
     return this
   }
 
-  writeVarintNum(n) {
+  writeVarintNum(n): BufferWriter {
     var buf = BufferWriter.varintBufNum(n)
     this.write(buf)
     return this
   }
 
-  writeVarintBN(bn) {
+  writeVarintBN(bn): BufferWriter {
     var buf = BufferWriter.varintBufBN(bn)
     this.write(buf)
     return this

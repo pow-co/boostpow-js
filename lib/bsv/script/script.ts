@@ -5,16 +5,18 @@ var BufferReader = require('../encoding/bufferreader')
 import {BufferWriter} from '../encoding/bufferwriter'
 import {Hash} from '../crypto/hash'
 import {Opcode} from '../opcode'
-var PublicKey = require('../publickey')
-var Signature = require('../crypto/signature')
-var Networks = require('../networks')
+import {PublicKey} from '../publickey'
+import {Signature} from '../crypto/signature'
+import {Networks} from '../networks'
 var $ = require('../util/preconditions')
 var _ = require('../util/_')
 var errors = require('../errors')
 var buffer = require('buffer')
 var JSUtil = require('../util/javas')
 
-interface scriptJSON {}
+interface scriptJSON {
+  chunks?: any[]
+}
 
 /**
  * A bitcoin transaction script. Each transaction's inputs and outputs
@@ -34,16 +36,18 @@ export class Script {
   constructor(from ?: Buffer | Address | Script | string | scriptJSON ) {
     this.chunks = []
 
+    if (!from) return
+
     if (Buffer.isBuffer(from)) {
       return Script.fromBuffer(from)
     } else if (from instanceof Address) {
       return Script.fromAddress(from)
     } else if (from instanceof Script) {
       return Script.fromBuffer(from.toBuffer())
-    } else if (_.isString(from)) {
+    } else if (typeof from === 'string') {
       return Script.fromString(from)
-    } else if (_.isObject(from) && _.isArray(from.chunks)) {
-      this.set(from)
+    } else if (from.chunks) {
+      this.set(<scriptJSON>from)
     }
 /*
   Script.outputIdentifiers = {}
@@ -159,7 +163,7 @@ export class Script {
     var i = 0
     while (i < tokens.length) {
       var token = tokens[i]
-      var opcode = Opcode(token)
+      var opcode = new Opcode(token)
       var opcodenum = opcode.toNumber()
 
       // we start with two special cases, 0 and -1, which are handled specially in
@@ -222,7 +226,7 @@ export class Script {
     var i = 0
     while (i < tokens.length) {
       var token = tokens[i]
-      var opcode = Opcode(token)
+      var opcode = new Opcode(token)
       var opcodenum = opcode.toNumber()
 
       if (_.isUndefined(opcodenum)) {
@@ -259,7 +263,7 @@ export class Script {
     return script
   }
 
-  _chunkToString(chunk, type): string {
+  _chunkToString(chunk, type?: string): string {
     var opcodenum = chunk.opcodenum
     var asm = (type === 'asm')
     var str = ''
@@ -276,10 +280,10 @@ export class Script {
             // OP_1NEGATE -> 1
             str = str + ' -1'
           } else {
-            str = str + ' ' + Opcode(opcodenum).toString()
+            str = str + ' ' + new Opcode(opcodenum).toString()
           }
         } else {
-          str = str + ' ' + Opcode(opcodenum).toString()
+          str = str + ' ' + new Opcode(opcodenum).toString()
         }
       } else {
         var numstr = opcodenum.toString(16)
@@ -524,7 +528,7 @@ export class Script {
    * In the case of a standard deprecated OP_RETURN, return the data
    * @returns {Buffer}
    */
-  getData(): boolean {
+  getData(): Buffer {
     if (this.isSafeDataOut()) {
       var chunks = this.chunks.slice(2)
       var buffers = chunks.map(chunk => chunk.buf)

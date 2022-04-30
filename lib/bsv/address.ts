@@ -4,10 +4,10 @@ var _ = require('./util/_')
 var $ = require('./util/preconditions')
 var errors = require('./errors')
 var Base58Check = require('./encoding/base58check')
-var Networks = require('./networks')
+import { Networks, Network } from './networks'
 import { Hash } from './crypto/hash'
 var JSUtil = require('./util/javas')
-var PublicKey = require('./publickey')
+import { PublicKey } from './publickey'
 
 /**
  * Instantiate an address from an address String or Buffer, a public key or script hash Buffer,
@@ -44,7 +44,10 @@ var PublicKey = require('./publickey')
  * @constructor
  */
 export class Address {
-  constructor(data: Address | any[], network?: number, type) {
+  hashBuffer
+  network
+  type
+  constructor(data: any, network?: Network | string | number, type?: any) {
 
     if (_.isArray(data) && _.isNumber(network)) {
       return Address.createMultisig(data, network, type)
@@ -68,16 +71,10 @@ export class Address {
     var info = this._classifyArguments(data, network, type)
 
     // set defaults if not set
-    info.network = info.network || Networks.get(network) || Networks.defaultNetwork
-    info.type = info.type || type || Address.PayToPublicKeyHash
+    this.network = info.network || Networks.get(<Network | string | number>network) || Networks.defaultNetwork
+    this.type = info.type || type || Address.PayToPublicKeyHash
 
-    JSUtil.defineImmutable(this, {
-      hashBuffer: info.hashBuffer,
-      network: info.network,
-      type: info.type
-    })
-
-    return this
+    this.hashBuffer = info.hashBuffer
   }
 
   /**
@@ -87,11 +84,12 @@ export class Address {
    * @param {string=} type - The type of address: 'script' or 'pubkey'
    * @returns {Object} An "info" object with "type", "network", and "hashBuffer"
    */
-  _classifyArguments(data, network, type) {
+  _classifyArguments(data, network?: Network | string | number, type?: string) {
     // transform and validate input data
     if ((data instanceof Buffer || data instanceof Uint8Array) && data.length === 20) {
       return Address._transformHash(data)
     } else if ((data instanceof Buffer || data instanceof Uint8Array) && data.length === 21) {
+      if (!network) throw "need a network"
       return Address._transformBuffer(data, network, type)
     } else if (data instanceof PublicKey) {
       return Address._transformPublicKey(data)
@@ -116,16 +114,11 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer
    * @private
    */
-  static _transformHash(hash) {
-    var info = {}
-    if (!(hash instanceof Buffer) && !(hash instanceof Uint8Array)) {
-      throw new TypeError('Address supplied is not a buffer.')
-    }
+  static _transformHash(hash: Buffer | Uint8Array): {hashBuffer: Buffer | Uint8Array} {
     if (hash.length !== 20) {
       throw new TypeError('Address hashbuffers must be exactly 20 bytes.')
     }
-    info.hashBuffer = hash
-    return info
+    return {hashBuffer: hash}
   }
 
   /**
@@ -153,21 +146,15 @@ export class Address {
    * @returns {Object} An object with keys: network and type
    * @private
    */
-  static _classifyFromVersion(buffer) {
-    var version = {}
-
+  static _classifyFromVersion(buffer: Buffer | Uint8Array): {network: any, type: any} | undefined {
     var pubkeyhashNetwork = Networks.get(buffer[0], 'pubkeyhash')
     var scripthashNetwork = Networks.get(buffer[0], 'scripthash')
 
     if (pubkeyhashNetwork) {
-      version.network = pubkeyhashNetwork
-      version.type = Address.PayToPublicKeyHash
+      return {network: pubkeyhashNetwork, type: Address.PayToPublicKeyHash}
     } else if (scripthashNetwork) {
-      version.network = scripthashNetwork
-      version.type = Address.PayToScriptHash
+      return {network: scripthashNetwork, type: Address.PayToScriptHash}
     }
-
-    return version
   }
 
   /**
@@ -179,8 +166,8 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer, network and type
    * @private
    */
-  static _transformBuffer(buffer, network, type) {
-    var info = {}
+  static _transformBuffer(buffer: Buffer | Uint8Array, network: string | Network | number, type?: string):
+    {hashBuffer: Buffer | Uint8Array, network: string | Network | number, type: string} {
     if (!(buffer instanceof Buffer) && !(buffer instanceof Uint8Array)) {
       throw new TypeError('Address supplied is not a buffer.')
     }
@@ -195,19 +182,20 @@ export class Address {
       throw new TypeError('Unknown network')
     }
 
-    if (!bufferVersion.network || (networkObj && networkObj !== bufferVersion.network)) {
+    if (!bufferVersion || (networkObj && networkObj !== bufferVersion.network)) {
       // console.log(bufferVersion)
       throw new TypeError('Address has mismatched network type.')
     }
 
-    if (!bufferVersion.type || (type && type !== bufferVersion.type)) {
+    if (!bufferVersion || (type && type !== bufferVersion.type)) {
       throw new TypeError('Address has mismatched type.')
     }
 
-    info.hashBuffer = buffer.slice(1)
-    info.network = bufferVersion.network
-    info.type = bufferVersion.type
-    return info
+    return {
+      hashBuffer: buffer.slice(1),
+      network: bufferVersion.network,
+      type: bufferVersion.type
+    }
   }
 
   /**
@@ -217,14 +205,15 @@ export class Address {
    * @returns {Object} An object with keys: hashBuffer, type
    * @private
    */
-  static _transformPublicKey(pubkey) {
+  static _transformPublicKey(pubkey: PublicKey): {hashBuffer: Buffer, type: string} {
     var info = {}
     if (!(pubkey instanceof PublicKey)) {
       throw new TypeError('Address must be an instance of PublicKey.')
     }
-    info.hashBuffer = Hash.sha256ripemd160(pubkey.toBuffer())
-    info.type = Address.PayToPublicKeyHash
-    return info
+    return {
+      hashBuffer: Hash.sha256ripemd160(pubkey.toBuffer()),
+      type: Address.PayToPublicKeyHash
+    }
   }
 
   /**
@@ -381,7 +370,7 @@ export class Address {
    * @param {string=} type - The type of address: 'script' or 'pubkey'
    * @returns {Address} A new valid and frozen instance of an Address
    */
-  static fromBuffer(buffer, network, type) {
+  static fromBuffer(buffer: Buffer, network: Network | string, type: string) {
     var info = Address._transformBuffer(buffer, network, type)
     return new Address(info.hashBuffer, info.network, info.type)
   }

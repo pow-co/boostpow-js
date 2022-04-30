@@ -11,10 +11,12 @@ var networkMaps = {}
  * (a.k.a. "mainnet"), "testnet", "regtest" and "stn".
  * @constructor
  */
-function Network () {}
+export class Network{
+  constructor() {}
 
-Network.prototype.toString = function toString () {
-  return this.name
+  toString() {
+    return this.name
+  }
 }
 
 /**
@@ -25,7 +27,7 @@ Network.prototype.toString = function toString () {
  * @param {string|Array} keys - if set, only check if the magic number associated with this name matches
  * @return Network
  */
-function get (arg, keys) {
+function get(arg: Network | string | number, keys?: string|string[]): Network {
   if (~networks.indexOf(arg)) {
     return arg
   }
@@ -375,7 +377,7 @@ function disableStn () {
 /**
  * @namespace Networks
  */
-module.exports = {
+export var Networks = {
   add: addNetwork,
   remove: removeNetwork,
   defaultNetwork: livenet,

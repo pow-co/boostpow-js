@@ -5,9 +5,9 @@ var $ = require('../util/preconditions')
 var inherits = require('inherits')
 var JSUtil = require('../util/javas')
 
-var PublicKey = require('../publickey')
+import {PublicKey} from '../publickey'
 var errors = require('../errors')
-var Signature = require('../crypto/signature')
+import {Signature} from '../crypto/signature'
 
 /**
  * @desc
@@ -16,7 +16,7 @@ var Signature = require('../crypto/signature')
  * @param {Object|string|TransactionSignature} arg
  * @constructor
  */
-function TransactionSignature (arg) {
+export function TransactionSignature (arg) {
   if (!(this instanceof TransactionSignature)) {
     return new TransactionSignature(arg)
   }
@@ -84,5 +84,3 @@ TransactionSignature.fromObject = function (object) {
   $.checkArgument(object)
   return new TransactionSignature(object)
 }
-
-module.exports = TransactionSignature
