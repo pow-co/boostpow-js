@@ -5,7 +5,7 @@ var _ = require('../util/_')
 var $ = require('../util/preconditions')
 var JSUtil = require('../util/javas')
 
-interface point {
+interface signature {
   r: any,
   s: any,
   i?: any,
@@ -14,17 +14,17 @@ interface point {
 }
 
 export class Signature {
+  r
+  s
   compressed
   i
   nhashtype
   constructor(
-    public r,
-    public s) {
+    r?: BN | signature,
+    s?: BN) {
     if (r instanceof BN) {
-      this.set({
-        r: r,
-        s: s
-      })
+      this.r = r
+      this.s = s
     } else if (r) {
       var obj = r
       this.set(obj)
@@ -37,7 +37,7 @@ export class Signature {
   static SIGHASH_FORKID = 0x40
   static SIGHASH_ANYONECANPAY = 0x80
 
-  set(obj: point) {
+  set(obj: signature) {
     this.r = obj.r || this.r || undefined
     this.s = obj.s || this.s || undefined
 
@@ -75,7 +75,7 @@ export class Signature {
     return sig
   }
 
-  static fromDER(buf, strict): Signature {
+  static fromDER(buf, strict?: boolean): Signature {
     var obj = Signature.parseDER(buf, strict)
     var sig = new Signature()
 
@@ -106,11 +106,9 @@ export class Signature {
   /**
    * In order to mimic the non-strict DER encoding of OpenSSL, set strict = false.
    */
-  static parseDER(buf, strict) {
+  static parseDER(buf, str?: boolean) {
     $.checkArgument(Buffer.isBuffer(buf), new Error('DER formatted signature should be a buffer'))
-    if (_.isUndefined(strict)) {
-      strict = true
-    }
+    let strict: boolean = _.isUndefined(str) ? true: <boolean>str
 
     var header = buf[0]
     $.checkArgument(header === 0x30, new Error('Header byte should be 0x30'))

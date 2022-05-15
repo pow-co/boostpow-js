@@ -5,13 +5,13 @@ import {Address} from './address'
 var Base58Check = require('./encoding/base58check')
 import {BN} from './crypto/bn'
 var JSUtil = require('./util/javas')
-import {Networks} from './networks'
+import {Networks, Network} from './networks'
 var Point = require('./crypto/point')
 import {PublicKey} from './publickey'
 var Random = require('./crypto/random')
 var $ = require('./util/preconditions')
 
-interface private_key {compressed: boolean, network: any, bn: BN}
+interface private_key {compressed: boolean, network: Network, bn: BN}
 
 /**
  * Instantiate a PrivateKey from a BN, Buffer or WIF string.
@@ -64,7 +64,14 @@ export class PrivateKey {
    * @param {Network|string=} network - a {@link Network} object, or a string with the network name
    * @return {Object}
    */
-  _classifyArguments(data, network: any): private_key {
+  _classifyArguments(data, network?: Network | string | number): private_key {
+    if (!network) {
+      let net = Networks.get(data)
+      if (!net) throw new TypeError('First argument is an unrecognized data type.')
+
+      return {compressed: true, network: net, bn: PrivateKey._getRandomBN()}
+    }
+
     var info: any = {
       compressed: true,
       network: network ? Networks.get(network) : Networks.defaultNetwork
@@ -76,17 +83,14 @@ export class PrivateKey {
     } else if (data instanceof BN) {
       info.bn = data
     } else if (data instanceof Buffer || data instanceof Uint8Array) {
-      info = PrivateKey._transformBuffer(data, network)
+      return PrivateKey._transformBuffer(data, network)
     } else if (data.bn && data.network) {
-      info = PrivateKey._transformObject(data)
-    } else if (!network && Networks.get(data)) {
-      info.bn = PrivateKey._getRandomBN()
-      info.network = Networks.get(data)
+      return PrivateKey._transformObject(data)
     } else if (typeof (data) === 'string') {
       if (JSUtil.isHexa(data)) {
         info.bn = new BN(Buffer.from(data, 'hex'))
       } else {
-        info = PrivateKey._transformWIF(data, network)
+        return PrivateKey._transformWIF(data, network)
       }
     } else {
       throw new TypeError('First argument is an unrecognized data type.')
@@ -119,34 +123,31 @@ export class PrivateKey {
    * @returns {Object} An object with keys: bn, network and compressed
    * @private
    */
-  static _transformBuffer(buf, network) {
-    var info = {}
-
+  static _transformBuffer(buf: Buffer | Uint8Array, network: Network | string): private_key {
     if (buf.length === 32) {
       return PrivateKey._transformBNBuffer(buf, network)
     }
 
-    info.network = Networks.get(buf[0], 'privatekey')
+    let n = Networks.get(buf[0], 'privatekey')
 
-    if (!info.network) {
+    if (!n) {
       throw new Error('Invalid network')
     }
 
-    if (network && info.network !== Networks.get(network)) {
+    if (network && n !== Networks.get(network)) {
       throw new TypeError('Private key network mismatch')
     }
 
+    let x: boolean
     if (buf.length === 1 + 32 + 1 && buf[1 + 32 + 1 - 1] === 1) {
-      info.compressed = true
+      x = true
     } else if (buf.length === 1 + 32) {
-      info.compressed = false
+      x = false
     } else {
       throw new Error('Length of buffer must be 33 (uncompressed) or 34 (compressed)')
     }
 
-    info.bn = BN.fromBuffer(buf.slice(1, 32 + 1))
-
-    return info
+    return {network: n, compressed: x, bn: BN.fromBuffer(buf.slice(1, 32 + 1))}
   }
 
   /**
@@ -255,7 +256,7 @@ export class PrivateKey {
    * @param {string=} network - Either "livenet" or "testnet"
    * @returns {PrivateKey} A new valid instance of PrivateKey
    */
-  static fromRandom(network) {
+  static fromRandom(network: string): PrivateKey {
     var bn = PrivateKey._getRandomBN()
     return new PrivateKey(bn, network)
   }

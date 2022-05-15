@@ -5,7 +5,9 @@ var $ = require('../util/preconditions')
 import {BN} from '../crypto/bn'
 
 export class BufferReader {
-  constructor(buf: Buffer) {
+  buf
+  pos
+  constructor(buf: Buffer | string | {buf: any, pos: any}) {
     if (_.isUndefined(buf)) {
       return
     }
@@ -13,8 +15,8 @@ export class BufferReader {
       this.set({
         buf: buf
       })
-    } else if (_.isString(buf)) {
-      var b = Buffer.from(buf, 'hex')
+    } else if (typeof buf === 'string') {
+      var b = Buffer.from(<string>buf, 'hex')
       if (b.length * 2 !== buf.length) { throw new TypeError('Invalid hex string') }
 
       this.set({

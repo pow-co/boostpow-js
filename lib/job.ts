@@ -6,6 +6,10 @@ import { Signature } from './bsv/crypto/signature'
 import { Address } from './bsv/address'
 import { PrivateKey } from './bsv/privatekey'
 import { Transaction } from './bsv/transaction/transaction'
+import { Output } from './bsv/transaction/output'
+import { Interpreter } from './bsv/script/interpreter'
+import * as Sighash from './bsv/transaction/sighash'
+import { Input } from './bsv/transaction/input/input'
 import { Int32Little } from './fields/int32Little'
 import { UInt32Little } from './fields/uint32Little'
 import { UInt16Little } from './fields/uint16Little'
@@ -552,11 +556,13 @@ export class Job {
       throw new Error('createRedeemTransaction: Boost Pow Job requires txid, vout, and value')
     }
 
+    let script = boostPowJob.toScript()
+
     let tx = new Transaction()
     tx.addInput(
-      new Transaction.Input({
-        output: new Transaction.Output({
-          script: boostPowJob.toScript(),
+      new Input({
+        output: new Output({
+          script: script,
           satoshis: boostPowJob.value
         }),
         prevTxId: boostPowJob.txid,
@@ -567,20 +573,20 @@ export class Job {
 
     const privKey = new PrivateKey(privateKeyStr)
     const sigtype = Signature.SIGHASH_ALL | Signature.SIGHASH_FORKID
-    const flags = Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
-      Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
-      Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
-      Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
+    const flags = Interpreter.SCRIPT_VERIFY_MINIMALDATA |
+      Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
+      Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+      Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
 
     const receiveSats = boostPowJob.value !== undefined ? boostPowJob.value : 0
-    tx.addOutput(new Transaction.Output({
+    tx.addOutput(new Output({
       script: new Script(new Address(receiveAddressStr)),
       satoshis: receiveSats ? receiveSats - 517 : 0 //subtract miner fee
     }))
 
-    const signature = Transaction.Sighash.sign(tx,
-      privKey, sigtype, 0, tx.inputs[0].output.script,
-      new BN(tx.inputs[0].output.satoshis), flags)
+    const signature = Sighash.sign(tx,
+      privKey, sigtype, 0, script,
+      new BN(boostPowJob.value), flags)
 
     const unlockingScript = new Script({})
     unlockingScript

@@ -1,71 +1,59 @@
 'use strict'
 
 var _ = require('../util/_')
-var BN = require('../crypto/bn')
+import {BN} from '../crypto/bn'
 var buffer = require('buffer')
 var JSUtil = require('../util/javas')
-var BufferWriter = require('../encoding/bufferwriter')
-var Varint = require('../encoding/varint')
-var Script = require('../script')
+import {BufferWriter} from '../encoding/bufferwriter'
+import {BufferReader} from '../encoding/bufferreader'
+import {Varint} from '../encoding/varint'
+import {Script} from '../script/script'
 var $ = require('../util/preconditions')
 var errors = require('../errors')
 
 var MAX_SAFE_INTEGER = 0x1fffffffffffff
 
-function Output (args) {
-  if (!(this instanceof Output)) {
-    return new Output(args)
-  }
-  if (_.isObject(args)) {
-    this.satoshis = args.satoshis
+export interface output {
+  script: Script | string | Buffer,
+  satoshis: number | BN
+}
+
+export class Output {
+  _satoshis: number = 0
+  _script: Script = new Script()
+  constructor(args: output) {
+    this.satoshis = args.satoshis instanceof BN ? args.satoshis.toNumber() : args.satoshis
     if (Buffer.isBuffer(args.script)) {
-      this._scriptBuffer = args.script
+      this.setScriptFromBuffer(args.script)
     } else {
       var script
       if (_.isString(args.script) && JSUtil.isHexa(args.script)) {
-        script = buffer.Buffer.from(args.script, 'hex')
+        script = Script.fromHex(<string>args.script)
       } else {
         script = args.script
       }
       this.setScript(script)
     }
-  } else {
-    throw new TypeError('Unrecognized argument for Output')
   }
-}
 
-Object.defineProperty(Output.prototype, 'script', {
-  configurable: false,
-  enumerable: true,
-  get: function () {
-    if (this._script) {
-      return this._script
-    } else {
-      this.setScriptFromBuffer(this._scriptBuffer)
-      return this._script
-    }
+  get script(): Script {
+    return this._script
   }
-})
 
-Object.defineProperty(Output.prototype, 'satoshis', {
-  configurable: false,
-  enumerable: true,
-  get: function () {
+  get satoshis() {
     return this._satoshis
-  },
-  set: function (num) {
+  }
+
+  set satoshis(num: number | BN) {
     if (num instanceof BN) {
-      this._satoshisBN = num
       this._satoshis = num.toNumber()
     } else if (_.isString(num)) {
       this._satoshis = parseInt(num)
-      this._satoshisBN = BN.fromNumber(this._satoshis)
     } else {
       $.checkArgument(
         JSUtil.isNaturalNumber(num),
         'Output satoshis is not a natural number'
       )
-      this._satoshisBN = BN.fromNumber(num)
       this._satoshis = num
     }
     $.checkState(
@@ -73,120 +61,95 @@ Object.defineProperty(Output.prototype, 'satoshis', {
       'Output satoshis is not a natural number'
     )
   }
-})
 
-Output.prototype.invalidSatoshis = function () {
-  if (this._satoshis > MAX_SAFE_INTEGER) {
-    return 'transaction txout satoshis greater than max safe integer'
+  invalidSatoshis(): boolean | string {
+    if (this._satoshis > MAX_SAFE_INTEGER) {
+      return 'transaction txout satoshis greater than max safe integer'
+    }
+    if (this._satoshis < 0) {
+      return 'transaction txout negative'
+    }
+    return false
   }
-  if (this._satoshis !== this._satoshisBN.toNumber()) {
-    return 'transaction txout satoshis has corrupted value'
-  }
-  if (this._satoshis < 0) {
-    return 'transaction txout negative'
-  }
-  return false
-}
 
-Object.defineProperty(Output.prototype, 'satoshisBN', {
-  configurable: false,
-  enumerable: true,
-  get: function () {
-    return this._satoshisBN
-  },
-  set: function (num) {
-    this._satoshisBN = num
+  get satoshisBN(): BN {
+    return BN.fromNumber(this._satoshis)
+  }
+
+  set satoshisBN(num: BN) {
     this._satoshis = num.toNumber()
     $.checkState(
       JSUtil.isNaturalNumber(this._satoshis),
       'Output satoshis is not a natural number'
     )
   }
-})
 
-Output.prototype.toObject = Output.prototype.toJSON = function toObject () {
-  var obj = {
-    satoshis: this.satoshis
-  }
-  obj.script = this._scriptBuffer.toString('hex')
-  return obj
-}
-
-Output.fromObject = function (data) {
-  return new Output(data)
-}
-
-Output.prototype.setScriptFromBuffer = function (buffer) {
-  this._scriptBuffer = buffer
-  try {
-    this._script = Script.fromBuffer(this._scriptBuffer)
-    this._script._isOutput = true
-  } catch (e) {
-    if (e instanceof errors.Script.InvalidBuffer) {
-      this._script = null
-    } else {
-      throw e
+  toObject(): output {
+    return {
+      satoshis: this.satoshis,
+      script: this._script.toHex()
     }
   }
-}
 
-Output.prototype.setScript = function (script) {
-  if (script instanceof Script) {
-    this._scriptBuffer = script.toBuffer()
-    this._script = script
+  toJSON(): output {
+    return this.toObject()
+  }
+
+  static fromObject(data: output): Output {
+    return new Output(data)
+  }
+
+  setScriptFromBuffer(buffer: Buffer) {
+    this._script = Script.fromBuffer(buffer)
     this._script._isOutput = true
-  } else if (_.isString(script)) {
-    this._script = Script.fromString(script)
-    this._scriptBuffer = this._script.toBuffer()
-    this._script._isOutput = true
-  } else if (Buffer.isBuffer(script)) {
-    this.setScriptFromBuffer(script)
-  } else {
-    throw new TypeError('Invalid argument type: script')
   }
-  return this
-}
 
-Output.prototype.inspect = function () {
-  var scriptStr
-  if (this.script) {
-    scriptStr = this.script.inspect()
-  } else {
-    scriptStr = this._scriptBuffer.toString('hex')
+  setScript(script: Script | Buffer | string): Output {
+    if (script instanceof Script) {
+      this._script = script
+      this._script._isOutput = true
+    } else if (_.isString(script)) {
+      this._script = Script.fromHex(<string>script)
+      this._script._isOutput = true
+    } else if (Buffer.isBuffer(script)) {
+      this.setScriptFromBuffer(script)
+    } else {
+      throw new TypeError('Invalid argument type: script')
+    }
+    return this
   }
-  return '<Output (' + this.satoshis + ' sats) ' + scriptStr + '>'
-}
 
-Output.fromBufferReader = function (br) {
-  var obj = {}
-  obj.satoshis = br.readUInt64LEBN()
-  var size = br.readVarintNum()
-  if (size !== 0) {
-    obj.script = br.read(size)
-  } else {
-    obj.script = buffer.Buffer.from([])
+  inspect(): string {
+    var scriptStr
+    if (this.script) {
+      scriptStr = this.script.inspect()
+    }
+    return '<Output (' + this.satoshis + ' sats) ' + scriptStr + '>'
   }
-  return new Output(obj)
-}
 
-Output.prototype.toBufferWriter = function (writer) {
-  if (!writer) {
-    writer = new BufferWriter()
+  static fromBufferReader(br: BufferReader) {
+    var sats = br.readUInt64LEBN()
+    var size = br.readVarintNum()
+    return new Output({satoshis: sats, script: size !== 0 ? br.read(size) : buffer.Buffer.from([])})
   }
-  writer.writeUInt64LEBN(this._satoshisBN)
-  var script = this._scriptBuffer
-  writer.writeVarintNum(script.length)
-  writer.write(script)
-  return writer
-}
 
-// 8    value
-// ???  script size (VARINT)
-// ???  script
-Output.prototype.getSize = function () {
-  var scriptSize = this.script.toBuffer().length
-  var varintSize = Varint(scriptSize).toBuffer().length
-  return 8 + varintSize + scriptSize
-}
+  toBufferWriter(writer?: BufferWriter): BufferWriter {
+    if (!writer) {
+      writer = new BufferWriter()
+    }
+    writer.writeUInt64LEBN(this.satoshisBN)
+    var script = this._script.toBuffer()
+    writer.writeVarintNum(script.length)
+    writer.write(script)
+    return writer
+  }
 
-module.exports = Output
+  // 8    value
+  // ???  script size (VARINT)
+  // ???  script
+  getSize(): number {
+    var scriptSize = this.script.toBuffer().length
+    var varintSize = new Varint(scriptSize).toBuffer().length
+    return 8 + varintSize + scriptSize
+  }
+}

@@ -2,8 +2,18 @@
 var _ = require('./util/_')
 
 var JSUtil = require('./util/javas')
-var networks = []
+var networks : Network[] = []
 var networkMaps = {}
+
+interface network_params {
+  name: any,
+  alias: any,
+  pubkeyhash: any,
+  privatekey: any,
+  scripthash: any,
+  xpubkey: any,
+  xprivkey: any
+}
 
 /**
  * A network is merely a map containing values that correspond to version
@@ -11,8 +21,23 @@ var networkMaps = {}
  * (a.k.a. "mainnet"), "testnet", "regtest" and "stn".
  * @constructor
  */
-export class Network{
-  constructor() {}
+export class Network {
+  name
+  alias
+  pubkeyhash
+  privatekey
+  scripthash
+  xpubkey
+  xprivkey
+  constructor(p: network_params) {
+    this.name = p.name
+    this.alias = p.alias
+    this.pubkeyhash = p.pubkeyhash
+    this.privatekey = p.privatekey
+    this.scripthash = p.scripthash
+    this.xpubkey = p.xpubkey
+    this.xprivkey = p.xprivkey
+  }
 
   toString() {
     return this.name
@@ -27,7 +52,8 @@ export class Network{
  * @param {string|Array} keys - if set, only check if the magic number associated with this name matches
  * @return Network
  */
-function get(arg: Network | string | number, keys?: string|string[]): Network {
+function get(arg: Network | string | number, keys?: string|string[]): Network | undefined {
+  if (typeof arg !== 'number') return arg
   if (~networks.indexOf(arg)) {
     return arg
   }
@@ -79,10 +105,8 @@ function cashAddrPrefixToArray (cashAddrPrefix) {
  * @param {Array}  data.dnsSeeds - An array of dns seeds
  * @return Network
  */
-function addNetwork (data) {
-  var network = new Network()
-
-  JSUtil.defineImmutable(network, {
+function addNetwork (data: network_params) {
+  var network = new Network({
     name: data.name,
     alias: data.alias,
     pubkeyhash: data.pubkeyhash,
@@ -123,7 +147,7 @@ function addNetwork (data) {
   return network
 }
 
-function indexNetworkBy (network, keys) {
+function indexNetworkBy (network: Network, keys) {
   for (var i = 0; i < keys.length; i++) {
     var key = keys[i]
     var networkValue = network[key]

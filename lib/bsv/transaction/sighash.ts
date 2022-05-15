@@ -2,16 +2,16 @@
 
 var buffer = require('buffer')
 
-var Signature = require('../crypto/signature')
-var Script = require('../script')
-var Output = require('./output')
-var BufferReader = require('../encoding/bufferreader')
-var BufferWriter = require('../encoding/bufferwriter')
-var BN = require('../crypto/bn')
-var Hash = require('../crypto/hash')
+import {Signature} from '../crypto/signature'
+import {Script} from '../script/script'
+import {Output} from './output'
+import {BufferReader} from '../encoding/bufferreader'
+import {BufferWriter} from '../encoding/bufferwriter'
+import {BN} from '../crypto/bn'
+import {Hash} from '../crypto/hash'
 var ECDSA = require('../crypto/ecdsa')
 var $ = require('../util/preconditions')
-var Interpreter = require('../script/interpreter')
+import {Interpreter} from '../script/interpreter'
 var _ = require('../util/_')
 
 var SIGHASH_SINGLE_BUG = Buffer.from('0000000000000000000000000000000000000000000000000000000000000001', 'hex')
@@ -137,7 +137,8 @@ var sighashPreimageForForkId = function (transaction, sighashType, inputNumber, 
  * @param {satoshisBN} input's amount (for  ForkId signatures)
  *
  */
-var sighashPreimage = function sighashPreimage (transaction, sighashType, inputNumber, subscript, satoshisBN, flags) {
+export var sighashPreimage = function sighashPreimage (transaction, sighashType, inputNumber,
+  subscript: Buffer | Address | Script | string, satoshisBN, flags) {
   var Transaction = require('./transaction')
   var Input = require('./input')
 
@@ -228,7 +229,8 @@ var sighashPreimage = function sighashPreimage (transaction, sighashType, inputN
  * @param {satoshisBN} input's amount (for  ForkId signatures)
  *
  */
-var sighash = function sighash (transaction, sighashType, inputNumber, subscript, satoshisBN, flags) {
+export var sighash = function sighash (transaction, sighashType, inputNumber,
+  subscript: Buffer | Address | Script | string, satoshisBN, flags) {
   var preimage = sighashPreimage(transaction, sighashType, inputNumber, subscript, satoshisBN, flags)
   if (preimage.compare(SIGHASH_SINGLE_BUG) === 0) return preimage
   var ret = Hash.sha256sha256(preimage)
@@ -248,7 +250,8 @@ var sighash = function sighash (transaction, sighashType, inputNumber, subscript
  * @param {satoshisBN} input's amount
  * @return {Signature}
  */
-function sign (transaction, privateKey, sighashType, inputIndex, subscript, satoshisBN, flags) {
+export function sign (transaction, privateKey, sighashType, inputIndex,
+  subscript: Buffer | Address | Script | string, satoshisBN, flags) {
   var hashbuf = sighash(transaction, sighashType, inputIndex, subscript, satoshisBN, flags)
 
   var sig = ECDSA.sign(hashbuf, privateKey, 'little').set({
@@ -270,19 +273,9 @@ function sign (transaction, privateKey, sighashType, inputIndex, subscript, sato
  * @param {flags} verification flags
  * @return {boolean}
  */
-function verify (transaction, signature, publicKey, inputIndex, subscript, satoshisBN, flags) {
+export function verify (transaction, signature, publicKey, inputIndex, subscript, satoshisBN, flags) {
   $.checkArgument(!_.isUndefined(transaction))
   $.checkArgument(!_.isUndefined(signature) && !_.isUndefined(signature.nhashtype))
   var hashbuf = sighash(transaction, signature.nhashtype, inputIndex, subscript, satoshisBN, flags)
   return ECDSA.verify(hashbuf, signature, publicKey, 'little')
-}
-
-/**
- * @namespace Signing
- */
-module.exports = {
-  sighashPreimage: sighashPreimage,
-  sighash: sighash,
-  sign: sign,
-  verify: verify
 }

@@ -1,7 +1,7 @@
 'use strict'
 
 import {BN} from './crypto/bn'
-import {Point} from './crypto/point'
+var Point = require('./crypto/point')
 import {Hash} from './crypto/hash'
 var JSUtil = require('./util/javas')
 import {Network} from './networks'
@@ -37,6 +37,9 @@ interface public_key {compressed: boolean, x: BN, y: BN}
  * @constructor
  */
 export class PublicKey {
+  point
+  compressed
+  network
   constructor(data, extra) {
     $.checkArgument(data, 'First argument is required, please include public key data.')
 
@@ -51,11 +54,9 @@ export class PublicKey {
     // validation
     info.point.validate()
 
-    JSUtil.defineImmutable(this, {
-      point: info.point,
-      compressed: info.compressed,
-      network: info.network || Network.defaultNetwork
-    })
+    this.point = info.point
+    this.compressed = info.compressed,
+    this.network = info.network ? info.network : Network.defaultNetwork
 
     return this
   }
@@ -65,7 +66,7 @@ export class PublicKey {
    * @param {*} data
    * @param {Object} extra
    */
-  _classifyArgs(data, extra): {compressed: boolean, point: Point, network: any} {
+  _classifyArgs(data, extra): {compressed: boolean, point: any, network: any} {
     var info = {
       compressed: _.isUndefined(extra.compressed) || extra.compressed
     }
@@ -137,7 +138,7 @@ export class PublicKey {
    * @returns {Object} An object with keys: point and compressed
    * @private
    */
-  static _transformDER(buf: Buffer, strict: boolean): {point: Point, compressed: boolean} {
+  static _transformDER(buf: Buffer, strict: boolean): {point: any, compressed: boolean} {
     $.checkArgument(PublicKey._isBuffer(buf), 'Must be a buffer of DER encoded public key')
 
     strict = _.isUndefined(strict) ? true : strict
@@ -393,7 +394,7 @@ export class PublicKey {
    * @see https://github.com/bitcoin/bitcoin/blob/master/src/pubkey.h#L141
    * @returns {Buffer}
    */
-  _getID() {
+  _getID(): Buffer {
     return Hash.sha256ripemd160(this.toBuffer())
   }
 
@@ -412,7 +413,7 @@ export class PublicKey {
    *
    * @returns {string} A DER hex encoded string
    */
-  toHex() {
+  toHex(): string {
     return this.toDER().toString('hex')
   }
 
@@ -421,7 +422,7 @@ export class PublicKey {
    *
    * @returns {string} A DER hex encoded string
    */
-  toString() {
+  toString(): string {
     return this.toHex()
   }
 

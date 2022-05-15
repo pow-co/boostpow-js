@@ -6,30 +6,31 @@ var buffer = require('buffer')
 
 var errors = require('../errors')
 var JSUtil = require('../util/javas')
-var BufferReader = require('../encoding/bufferreader')
-var BufferWriter = require('../encoding/bufferwriter')
-var Varint = require('../encoding/varint')
+import {BufferReader} from '../encoding/bufferreader'
+import {BufferWriter} from '../encoding/bufferwriter'
+import {Varint} from '../encoding/varint'
 import { Hash } from '../crypto/hash'
 import { Signature } from '../crypto/signature'
-var Sighash = require('./sighash')
+import * as Sighash from './sighash'
 
 import {Address} from '../address'
 var UnspentOutput = require('./unspentoutput')
-var Input = require('./input')
+import {input, Input} from './input/input'
+import {TransactionSignature} from './signature'
 var PublicKeyHashInput = Input.PublicKeyHash
 var PublicKeyInput = Input.PublicKey
 var MultiSigScriptHashInput = Input.MultiSigScriptHash
 var MultiSigInput = Input.MultiSig
-var Output = require('./output')
-var Script = require('../script')
-var PrivateKey = require('../privatekey')
+import {output, Output} from './output'
+import {Script} from '../script/script'
+import {PrivateKey} from '../privatekey'
 import {BN} from '../crypto/bn'
 
-interface txJSON {
+interface transaction {
   hash: any,
   version: any,
-  inputs: any,
-  outputs: any,
+  inputs: input[],
+  outputs: input[],
   nLockTime: any,
   changeScript?: any,
   changeIndex?: any,
@@ -43,10 +44,10 @@ interface txJSON {
  * @constructor
  */
 export class Transaction {
-  version
-  inputs
-  outputs
-  nLockTime
+  version: number
+  inputs: Input[]
+  outputs: Output[]
+  nLockTime: number
 
   _fee
   _feePerKb
@@ -56,7 +57,7 @@ export class Transaction {
   _inputAmount
   _hash
 
-  constructor(serialized?: Transaction | Buffer | string | txJSON) {
+  constructor(serialized?: Transaction | Buffer | string | transaction) {
     this.inputs = []
     this.outputs = []
     this._inputAmount = undefined
@@ -322,12 +323,12 @@ export class Transaction {
     return this
   }
 
-  toJSON(): txJSON {
-    var inputs = []
+  toJSON(): transaction {
+    var inputs: input[] = []
     this.inputs.forEach(function (input) {
       inputs.push(input.toObject())
     })
-    var outputs = []
+    var outputs: output[] = []
     this.outputs.forEach(function (output) {
       outputs.push(output.toObject())
     })
@@ -344,11 +345,11 @@ export class Transaction {
     return obj
   }
 
-  toObject(): txJSON {
+  toObject(): transaction {
     return this.toJSON()
   }
 
-  fromObject(arg: txJSON) {
+  fromObject(arg: transaction) {
     $.checkArgument(_.isObject(arg) || arg instanceof Transaction)
     var self = this
     var transaction
@@ -613,8 +614,7 @@ export class Transaction {
    * @param {number} satoshis
    * @return Transaction this, for chaining
    */
-  addInput(input, outputScript, satoshis) {
-    $.checkArgumentType(input, Input, 'input')
+  addInput(input: Input, outputScript?: any, satoshis?: number) {
     if (!input.output && (_.isUndefined(outputScript) || _.isUndefined(satoshis))) {
       throw new errors.Transaction.NeedMoreInfo('Need information about the UTXO script and satoshis')
     }
@@ -743,7 +743,7 @@ export class Transaction {
       'Amount is expected to be a positive integer'
     )
     this.addOutput(new Output({
-      script: Script(new Address(address)),
+      script: new Script(new Address(address)),
       satoshis: amount
     }))
     return this
@@ -941,8 +941,8 @@ export class Transaction {
   // 4    locktime
   _estimateSize() {
     var result = 4 + 4 // size of version + size of locktime
-    result += Varint(this.inputs.length).toBuffer().length
-    result += Varint(this.outputs.length).toBuffer().length
+    result += new Varint(this.inputs.length).toBuffer().length
+    result += new Varint(this.outputs.length).toBuffer().length
     _.each(this.inputs, function (input) {
       result += input._estimateSize()
     })
@@ -1088,15 +1088,15 @@ export class Transaction {
     return this
   }
 
-  getSignatures(privKey, sigtype) {
+  getSignatures(privKey, sigtype): TransactionSignature[] {
     privKey = new PrivateKey(privKey)
     // By default, signs using ALL|FORKID
     sigtype = sigtype || (Signature.SIGHASH_ALL | Signature.SIGHASH_FORKID)
     var transaction = this
-    var results = []
+    var results: TransactionSignature[] = []
     var hashData = Hash.sha256ripemd160(privKey.publicKey.toBuffer())
     _.each(this.inputs, function forEachInput (input, index) {
-      _.each(input.getSignatures(transaction, privKey, index, sigtype, hashData), function (signature) {
+      _.each(input.getSignatures(transaction, privKey, index, sigtype, hashData), function (signature: TransactionSignature) {
         results.push(signature)
       })
     })
@@ -1173,10 +1173,10 @@ export class Transaction {
       if (txout.invalidSatoshis()) {
         return 'transaction txout ' + i + ' satoshis is invalid'
       }
-      if (txout._satoshisBN.gt(new BN(Transaction.MAX_MONEY, 10))) {
+      if (txout.satoshisBN.gt(new BN(Transaction.MAX_MONEY, 10))) {
         return 'transaction txout ' + i + ' greater than MAX_MONEY'
       }
-      valueoutbn = valueoutbn.add(txout._satoshisBN)
+      valueoutbn = valueoutbn.add(txout.satoshisBN)
       if (valueoutbn.gt(new BN(Transaction.MAX_MONEY))) {
         return 'transaction txout ' + i + ' total output greater than MAX_MONEY'
       }

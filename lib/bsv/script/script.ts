@@ -1,7 +1,7 @@
 'use strict'
 
 import {Address} from '../address'
-var BufferReader = require('../encoding/bufferreader')
+import {BufferReader} from '../encoding/bufferreader'
 import {BufferWriter} from '../encoding/bufferwriter'
 import {Hash} from '../crypto/hash'
 import {Opcode} from '../opcode'
@@ -29,6 +29,7 @@ interface scriptJSON {
  */
 export class Script {
   public chunks
+  public _isOutput
   static types
 
   public OP_RETURN_STANDARD_SIZE: number = 220
@@ -855,7 +856,7 @@ export class Script {
    * @param {(string|Buffer|Array)} data - the data to embed in the output - it is a string, buffer, or array of strings or buffers
    * @param {(string)} encoding - the type of encoding of the string(s)
    */
-  static buildDataOut(data, encoding): Script {
+  static buildDataOut(data, encoding?: string): Script {
     $.checkArgument(_.isUndefined(data) || _.isString(data) || _.isArray(data) || Buffer.isBuffer(data))
     var datas = data
     if (!_.isArray(datas)) {
@@ -880,7 +881,7 @@ export class Script {
    * @param {(string|Buffer|Array)} data - the data to embed in the output - it is a string, buffer, or array of strings or buffers
    * @param {(string)} encoding - the type of encoding of the string(s)
    */
-  static buildSafeDataOut(data, encoding): Script {
+  static buildSafeDataOut(data, encoding?: string): Script {
     var s2 = Script.buildDataOut(data, encoding)
     var s1 = new Script()
     s1.add(Opcode.OP_FALSE)

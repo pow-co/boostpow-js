@@ -5,6 +5,7 @@ var $ = require('./util/preconditions')
 var JSUtil = require('./util/javas')
 
 export class Opcode {
+  num
   constructor(num: number | string) {
     if (!(this instanceof Opcode)) {
       return new Opcode(num)
@@ -70,12 +71,12 @@ export class Opcode {
     $.checkArgument(_.isNumber(n), 'Invalid Argument: n should be number')
     $.checkArgument(n >= 0 && n <= 16, 'Invalid Argument: n must be between 0 and 16')
     if (n === 0) {
-      return Opcode('OP_0')
+      return new Opcode('OP_0')
     }
     return new Opcode(Opcode.map.OP_1 + n - 1)
   }
 
-  static map = {
+  static map: {[key: string]: number} = {
     // push value
     OP_FALSE: 0,
     OP_0: 0,
@@ -217,7 +218,7 @@ export class Opcode {
     OP_INVALIDOPCODE: 255
   }
 
-  static reverseMap = []
+  static reverseMap: {[key: number]: string} = []
 
   // push value
   static OP_FALSE: 0

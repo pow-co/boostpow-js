@@ -16,7 +16,7 @@ export class BufferWriter {
     return this
   }
 
-  toBuffer(): BufferWriter {
+  toBuffer(): Buffer {
     return this.concat()
   }
 
