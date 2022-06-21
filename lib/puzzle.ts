@@ -16,7 +16,8 @@ export class Puzzle {
   pubkey: Bytes
   _address: Digest20 | undefined
 
-  constructor(output: Output, key: bsv.PrivateKey) {
+  constructor(output: Output, k: bsv.PrivateKey | string) {
+    let key = new bsv.PrivateKey(k)
     let pub = key.toPublicKey()
     let address: Digest20 = new Digest20(Buffer.from(bsv.Address.fromPublicKey(pub, key.network).toObject().hash, 'hex'))
     if (output.script.minerPubKeyHash) {
