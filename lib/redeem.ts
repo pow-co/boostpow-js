@@ -370,7 +370,7 @@ export class Redeem {
         return this.toScript().toString()
     }
 
-    toBuffer(): Bytes {
+    toBuffer(): Buffer {
         return this.toScript().toBuffer()
     }
 
@@ -382,7 +382,7 @@ export class Redeem {
         return Redeem.fromHex(str, txid, vin)
     }
 
-    // the expected size of a complete script. 
+    // the expected size of a complete script.
     static expectedSize(
       is_boundy: boolean,
       use_general_purpose_bits: boolean,

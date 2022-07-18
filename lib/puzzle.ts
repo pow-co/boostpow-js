@@ -6,14 +6,17 @@ import { Redeem } from './redeem'
 import { Digest32 } from './fields/digest32'
 import { Digest20 } from './fields/digest20'
 import { Bytes } from './fields/bytes'
-import { transaction } from './transaction'
+import { transaction,
+  incomplete_transaction,
+  estimate_transaction_size,
+  write_incomplete_transaction } from './transaction'
 
 // Puzzle represents a Boost output that has had a private key assigned to it.
 // This may have happened before or after the output was created, depending on
 // whether it has a contract or bounty format.
 export class Puzzle {
   output: Output
-  key: bsv.PrivKey
+  key: bsv.PrivateKey
   pubkey: Bytes
   _address: Digest20 | undefined
 
@@ -69,7 +72,7 @@ export function createRedeemTransaction(
   output: Output,
   solution: work.Solution,
   privateKeyStr: string,
-  receiveAddres: string,
+  receiveAddress: string,
   sats_per_byte: number): transaction | null {
 
   // step 1. create incomplete transaction.
@@ -78,34 +81,34 @@ export function createRedeemTransaction(
     version: 2,
     inputs: [
       {
-        prevTxId: output.txid,
-        outputIndex: output.index,
-        script_size: Redeem.expectedSize(
+        prevTxId: output.txid.buffer,
+        outputIndex: output.vout,
+        scriptSize: Redeem.expectedSize(
           output.script.isBounty(),
-          output.script.scriptVersion() == 2,
+          output.script.scriptVersion == 2,
           key.compressed)
       }
     ],
     outputs: [
       {
-        value: 0n,
-        script: bsv.Script(new bsv.Address(receiveAddressStr)).toBuffer()
+        satoshis: 0n,
+        script: bsv.Script(new bsv.Address(receiveAddress)).toBuffer()
       }
     ]
   }
 
   // steps 2 - 3: get fee
-  let fee = BigInt(Math.ceiling(estimate_transaction_size(tx) * sats_per_byte))
+  let fee = BigInt(Math.ceil(estimate_transaction_size(tx) * sats_per_byte))
   if (fee > output.value) throw "not enough sats to be worth it"
-  tx.outputs[0].value = output.value - fee
+  tx.outputs[0].satoshis = output.value - fee
 
   // steps 4 - 6
   return {
     version: 2,
     inputs: [
       {
-        prevTxId: output.txid,
-        outputIndex: output.index,
+        prevTxId: output.txid.buffer,
+        outputIndex: output.vout,
         script: new Puzzle(output, key).redeem(solution, write_incomplete_transaction(tx), 0).toBuffer()
       }
     ],

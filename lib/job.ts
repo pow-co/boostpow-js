@@ -42,7 +42,7 @@ export class Job {
     // Optional tx information attached or not
     private Txid?: string,
     private Vout?: number,
-    private Value?: BigInt,
+    private Value?: bigint,
   ) {}
 
   get category(): Int32Little {
@@ -274,7 +274,7 @@ export class Job {
     return true
   }
 
-  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: BigInt): Job {
+  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: bigint): Job {
     let category
     let content
     let diff
@@ -418,15 +418,15 @@ export class Job {
     )
   }
 
-  static fromHex(asm: string, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromHex(asm: string, txid?: string, vout?: number, value?: bigint): Job {
     return Job.readScript(new bsv.Script(asm), txid, vout, value)
   }
 
-  static fromASM(asm: string, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromASM(asm: string, txid?: string, vout?: number, value?: bigint): Job {
     return Job.readScript(new bsv.Script.fromASM(asm), txid, vout, value)
   }
 
-  static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: bigint): Job {
     return Job.readScript(new bsv.Script.fromBuffer(b), txid, vout, value)
   }
 
@@ -436,11 +436,11 @@ export class Job {
     return makeAsm.toASM()
   }
 
-  static fromASM4(str: string, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromASM4(str: string, txid?: string, vout?: number, value?: bigint): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
-  static fromASM2(str: string, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromASM2(str: string, txid?: string, vout?: number, value?: bigint): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
@@ -450,12 +450,12 @@ export class Job {
     return makeAsm.toString()
   }
 
-  static fromString(str: string, txid?: string, vout?: number, value?: BigInt): Job {
+  static fromString(str: string, txid?: string, vout?: number, value?: bigint): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
   // Optional attached information if available
-  get txOutpoint(): {txid?: string, vout?: number, value?: number} {
+  get txOutpoint(): {txid?: string, vout?: number, value?: bigint} {
     return {
       txid: this.txid,
       vout: this.vout,
@@ -474,7 +474,7 @@ export class Job {
   }
 
   // Optional attached information if available
-  get value(): number | undefined {
+  get value(): bigint | undefined {
     return this.Value
   }
 

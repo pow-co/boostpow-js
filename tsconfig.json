@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es2015",
+    "target": "es2020",
     "module": "commonjs",
     "declaration": true,
     "outDir": "./dist",
@@ -17,4 +17,3 @@
     "./node_modules/@types/node/index.d.ts"
   ]
 }
-

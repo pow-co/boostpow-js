@@ -50,10 +50,10 @@ export class Utils {
    * @returns {BN} An instance of BN with the decoded difficulty bits
    */
   public static getTargetDifficulty(bits: number): BigInt {
-    var target = new BigInt(bits & 0xffffff)
+    var target = BigInt(bits & 0xffffff)
     var mov = ((bits >>> 24) - 3)
     while (mov-- > 0) {
-      target = target.mul(new BigInt(256))
+      target = target.mul(BigInt(256))
     }
     return target
   }
