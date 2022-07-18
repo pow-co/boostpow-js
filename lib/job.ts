@@ -42,7 +42,7 @@ export class Job {
     // Optional tx information attached or not
     private Txid?: string,
     private Vout?: number,
-    private Value?: number,
+    private Value?: BigInt,
   ) {}
 
   get category(): Int32Little {
@@ -274,7 +274,7 @@ export class Job {
     return true
   }
 
-  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: number): Job {
+  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: BigInt): Job {
     let category
     let content
     let diff
@@ -418,15 +418,15 @@ export class Job {
     )
   }
 
-  static fromHex(asm: string, txid?: string, vout?: number, value?: number): Job {
+  static fromHex(asm: string, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.readScript(new bsv.Script(asm), txid, vout, value)
   }
 
-  static fromASM(asm: string, txid?: string, vout?: number, value?: number): Job {
+  static fromASM(asm: string, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.readScript(new bsv.Script.fromASM(asm), txid, vout, value)
   }
 
-  static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: number): Job {
+  static fromBuffer(b: Buffer, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.readScript(new bsv.Script.fromBuffer(b), txid, vout, value)
   }
 
@@ -436,11 +436,11 @@ export class Job {
     return makeAsm.toASM()
   }
 
-  static fromASM4(str: string, txid?: string, vout?: number, value?: number): Job {
+  static fromASM4(str: string, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
-  static fromASM2(str: string, txid?: string, vout?: number, value?: number): Job {
+  static fromASM2(str: string, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
@@ -450,7 +450,7 @@ export class Job {
     return makeAsm.toString()
   }
 
-  static fromString(str: string, txid?: string, vout?: number, value?: number): Job {
+  static fromString(str: string, txid?: string, vout?: number, value?: BigInt): Job {
     return Job.fromHex(str, txid, vout, value)
   }
 
@@ -524,72 +524,6 @@ export class Job {
 
     const tx = new bsv.Transaction(rawtx)
     return Job.fromTransaction(tx, vout)
-  }
-
-  /**
-   * Create a transaction fragment that can be modified to redeem the boost job
-   *
-   * @param boostPowJob Boost Job to redeem
-   * @param boostPowJobProof Boost job proof to use to redeem
-   * @param privateKey The private key string of the minerPubKeyHash
-   */
-  static createRedeemTransaction(boostPowJob: Job, boostPowJobProof: Redeem, privateKeyStr: string, receiveAddressStr: string): bsv.Transaction | null {
-    const boostPowString = Job.tryValidateJobProof(boostPowJob, boostPowJobProof)
-    if (!boostPowString) {
-      throw new Error('createRedeemTransaction: Invalid Job Proof')
-    }
-
-
-    let tx = new bsv.Transaction()
-    tx.addInput(
-      new bsv.Transaction.Input({
-        output: new bsv.Transaction.Output({
-          script: boostPowJob.toScript(),
-          satoshis: boostPowJob.value
-        }),
-        prevTxId: boostPowJob.txid,
-        outputIndex: boostPowJob.vout,
-        script: bsv.Script.empty()
-      })
-    )
-
-    const privKey = new bsv.PrivateKey(privateKeyStr)
-    const sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID
-    const flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
-
-    const receiveSats = boostPowJob.value !== undefined ? boostPowJob.value : 0
-    tx.addOutput(new bsv.Transaction.Output({
-      script: bsv.Script(new bsv.Address(receiveAddressStr)),
-      satoshis: receiveSats ? receiveSats - 517 : 0 //subtract miner fee
-    }))
-
-    const signature = bsv.Transaction.Sighash.sign(tx,
-      privKey, sigtype, 0, tx.inputs[0].output.script,
-      new bsv.crypto.BN(tx.inputs[0].output.satoshis), flags)
-
-    const unlockingScript = new bsv.Script({})
-    unlockingScript
-      .add(
-        Buffer.concat([
-          signature.toBuffer(),
-          Buffer.from([sigtype & 0xff])
-        ])
-      )
-      .add(privKey.toPublicKey().toBuffer())
-      .add(boostPowJobProof.nonce.buffer)
-      .add(boostPowJobProof.time.buffer)
-      .add(boostPowJobProof.extraNonce2.buffer)
-      .add(boostPowJobProof.extraNonce1.buffer)
-
-    if (boostPowJobProof.minerPubKeyHash) {
-      unlockingScript.add(boostPowJobProof.minerPubKeyHash.buffer)
-    }
-
-    tx.inputs[0].setScript(unlockingScript)
-    return tx
   }
 
   static puzzle(boostPowJob: Job, address?: Digest20): work.Puzzle {

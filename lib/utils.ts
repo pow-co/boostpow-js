@@ -49,11 +49,11 @@ export class Utils {
    * @param {Number} bits
    * @returns {BN} An instance of BN with the decoded difficulty bits
    */
-  public static getTargetDifficulty(bits: number): bsv.crypto.BN {
-    var target = new bsv.crypto.BN(bits & 0xffffff)
+  public static getTargetDifficulty(bits: number): BigInt {
+    var target = new BigInt(bits & 0xffffff)
     var mov = ((bits >>> 24) - 3)
     while (mov-- > 0) {
-      target = target.mul(new bsv.crypto.BN(256))
+      target = target.mul(new BigInt(256))
     }
     return target
   }
@@ -73,11 +73,11 @@ export class Utils {
     var difficulty1TargetBN = Utils.getTargetDifficulty(Utils.unitBits())
     var currentTargetBN = Utils.getTargetDifficulty(bits)
 
-    if (currentTargetBN.gt(difficulty1TargetBN)) {
+    if (currentTargetBN > difficulty1TargetBN) {
       return parseFloat(difficulty1TargetBN.toString(10)) / parseFloat(currentTargetBN.toString(10))
     }
 
-    var difficultyString = difficulty1TargetBN.mul(new bsv.crypto.BN(Math.pow(10, 8))).div(currentTargetBN).toString(10)
+    var difficultyString = ((difficulty1TargetBN * BigInt(Math.pow(10, 8))) / currentTargetBN).toString(10)
     var decimalPos = difficultyString.length - 8
     difficultyString = difficultyString.slice(0, decimalPos) + '.' + difficultyString.slice(decimalPos)
     return parseFloat(difficultyString)

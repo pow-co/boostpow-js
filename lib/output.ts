@@ -7,11 +7,11 @@ import { Digest32 } from './fields/digest32'
 // redeeming a Boost output.
 export class Output {
   script: Job
-  _value: number | undefined
+  _value: BigInt | undefined
   _txid: Digest32 | undefined
   _vout: number | undefined
 
-  constructor(job: Job, value?: number, txid?: Digest32, vout?: number) {
+  constructor(job: Job, value?: BigInt, txid?: Digest32, vout?: number) {
     this.script = job
     if (value) this._value = value
     else if (!job.value) throw "invalid output: missing parameter value"

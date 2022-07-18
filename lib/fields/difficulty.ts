@@ -43,7 +43,7 @@ export class Difficulty {
     return this.hex
   }
 
-  get target(): bsv.crypto.BN {
+  get target(): BigInt {
     return Utils.getTargetDifficulty(this.bits)
   }
 }

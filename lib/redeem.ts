@@ -381,4 +381,14 @@ export class Redeem {
     static fromString(str: string, txid?: string, vin?: number): Redeem {
         return Redeem.fromHex(str, txid, vin)
     }
+
+    // the expected size of a complete script. 
+    static expectedSize(
+      is_boundy: boolean,
+      use_general_purpose_bits: boolean,
+      compressed_pubkey: boolean): number {
+        return 96 + (compressed_pubkey ? 34 : 66) +
+          (is_boundy ? 21 : 0) +
+          (use_general_purpose_bits ? 5 : 0)
+    }
 }

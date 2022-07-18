@@ -6,6 +6,7 @@ import { Redeem } from './redeem'
 import { Digest32 } from './fields/digest32'
 import { Digest20 } from './fields/digest20'
 import { Bytes } from './fields/bytes'
+import { transaction } from './transaction'
 
 // Puzzle represents a Boost output that has had a private key assigned to it.
 // This may have happened before or after the output was created, depending on
@@ -17,7 +18,7 @@ export class Puzzle {
   _address: Digest20 | undefined
 
   constructor(output: Output, k: bsv.PrivateKey | string) {
-    let key: bsv.PrivateKey(k)
+    let key = bsv.PrivateKey(k)
     let pub = key.toPublicKey()
     let address: Digest20 = new Digest20(Buffer.from(bsv.Address.fromPublicKey(pub, key.network).toObject().hash, 'hex'))
     if (output.script.minerPubKeyHash) {
@@ -41,7 +42,7 @@ export class Puzzle {
   redeem(
     solution: work.Solution,
     // the incomplete tx that will be signed (the input scripts are missing)
-    incomplete_transaction: Buffer | bsv.Transaction,
+    incomplete: Buffer | bsv.Transaction | transaction,
     // the index of the input script that we are creating.
     input_index: number,
     sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID,
@@ -55,11 +56,59 @@ export class Puzzle {
       new Bytes(
         Buffer.concat([
           bsv.Transaction.Sighash.sign(
-            new bsv.Transaction(incomplete_transaction), this.key, sigtype,
+            new bsv.Transaction(incomplete), this.key, sigtype,
             input_index, this.output.script.toScript(),
             new bsv.crypto.BN(this.output.value), flags).toBuffer(),
           Buffer.from([sigtype & 0xff])
         ])), this.pubkey, solution, this._address)
 
+  }
+}
+
+export function createRedeemTransaction(
+  output: Output,
+  solution: work.Solution,
+  privateKeyStr: string,
+  receiveAddres: string,
+  sats_per_byte: number): transaction | null {
+
+  // step 1. create incomplete transaction.
+  let key = bsv.PrivateKey(privateKeyStr)
+  let tx: incomplete_transaction = {
+    version: 2,
+    inputs: [
+      {
+        prevTxId: output.txid,
+        outputIndex: output.index,
+        script_size: Redeem.expectedSize(
+          output.script.isBounty(),
+          output.script.scriptVersion() == 2,
+          key.compressed)
+      }
+    ],
+    outputs: [
+      {
+        value: 0n,
+        script: bsv.Script(new bsv.Address(receiveAddressStr)).toBuffer()
+      }
+    ]
+  }
+
+  // steps 2 - 3: get fee
+  let fee = BigInt(Math.ceiling(estimate_transaction_size(tx) * sats_per_byte))
+  if (fee > output.value) throw "not enough sats to be worth it"
+  tx.outputs[0].value = output.value - fee
+
+  // steps 4 - 6
+  return {
+    version: 2,
+    inputs: [
+      {
+        prevTxId: output.txid,
+        outputIndex: output.index,
+        script: new Puzzle(output, key).redeem(solution, write_incomplete_transaction(tx), 0).toBuffer()
+      }
+    ],
+    outputs: tx.outputs
   }
 }

@@ -17,7 +17,7 @@ export class Digest32 {
     return Buffer.from(this.data).reverse().toString('hex')
   }
 
-  get number(): bsv.crypto.BN {
+  get number(): BigInt {
     return new bsv.crypto.BN(this.hex, 'hex', 'be')
   }
 
