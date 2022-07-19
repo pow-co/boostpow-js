@@ -98,7 +98,7 @@ export function createRedeemTransaction(
   }
 
   // steps 2 - 3: get fee
-  let fee = BigInt(Math.ceil(estimate_transaction_size(tx) * sats_per_byte))
+  let fee = BigInt(Math.ceil(Number(estimate_transaction_size(tx)) * sats_per_byte))
   if (fee > output.value) throw "not enough sats to be worth it"
   tx.outputs[0].satoshis = output.value - fee
 
