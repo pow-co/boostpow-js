@@ -61,4 +61,11 @@ export class Puzzle {
         ])), this.pubkey, solution, this._address)
 
   }
+
+  expectedRedeemScriptSize(): number {
+    return Redeem.expectedSize(
+      this.output.script.isBounty(),
+      this.output.script.scriptVersion == 2,
+      this.key.compressed)
+  }
 }
