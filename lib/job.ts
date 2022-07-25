@@ -484,10 +484,12 @@ export class Job {
     return bsv.crypto.Hash.sha256(buffer).reverse().toString('hex')
   }
 
-  static fromTransaction(tx: bsv.Transaction, vout: number = 0): Job | undefined {
-    if (!tx) {
+  static fromTransaction(t: bsv.Transaction | Buffer | string, vout: number = 0): Job | undefined {
+    if (!t) {
       return undefined
     }
+
+    let tx: bsv.Transaction = new bsv.Transaction(t)
 
     if (vout > tx.outputs.length - 1 || vout < 0 || vout === undefined || vout === null) {
       return undefined
