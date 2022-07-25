@@ -145,6 +145,10 @@ export class Redeem {
       return !!this.MinerPubKeyHash
     }
 
+    get solution(): work.Solution {
+      return new work.Solution(this.time, this.extraNonce1, this.extraNonce2, this.nonce, this.generalPurposeBits)
+    }
+
     toObject () {
       let obj = {
         // Output to string first, then flip endianness so we do not accidentally modify underlying buffer

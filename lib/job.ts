@@ -670,7 +670,6 @@ export class Job {
     ]))
 
     let z: work.Puzzle
-    let x: work.Solution
 
     if (boostPowJob.useGeneralPurposeBits) {
       z = new work.Puzzle(
@@ -691,24 +690,7 @@ export class Job {
       )
     }
 
-    if (boostPowJobProof.generalPurposeBits) {
-      x = new work.Solution(
-        boostPowJobProof.time,
-        boostPowJobProof.extraNonce1,
-        boostPowJobProof.extraNonce2,
-        boostPowJobProof.nonce,
-        boostPowJobProof.generalPurposeBits,
-      )
-    } else {
-      x = new work.Solution(
-        boostPowJobProof.time,
-        boostPowJobProof.extraNonce1,
-        boostPowJobProof.extraNonce2,
-        boostPowJobProof.nonce
-      )
-    }
-
-    return new work.Proof(z, x)
+    return new work.Proof(z, boostPowJobProof.solution)
   }
 
   static tryValidateJobProof(boostPowJob: Job, boostPowJobProof: Redeem):
