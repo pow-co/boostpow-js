@@ -20,15 +20,11 @@ export class UInt32Big {
     return new UInt32Big(data)
   }
 
-  static fromHex(hex: string): UInt32Big {
-    if (hex.length != 8) {
-      throw new InvalidUInt32Big()
-    }
+  static fromHex(hex: string): UInt32Big | undefined {
+    if (hex.length != 8) return
 
     let data = Buffer.from(hex, 'hex');
-    if (data.length != 4) {
-      throw new InvalidUInt32Big()
-    }
+    if (data.length != 4) return
 
     return new UInt32Big(data)
   }

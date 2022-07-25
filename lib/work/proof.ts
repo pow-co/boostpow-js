@@ -27,6 +27,52 @@ export class Solution {
     public ExtraNonce2: Bytes,
     public Nonce: UInt32Little,
     public GeneralPurposeBits?: Int32Little) {}
+
+  toJSON() {
+    let json = {
+      share: {
+        timestamp: this.Time.hex,
+        nonce: this.Nonce.hex,
+        extra_nonce_2: this.Nonce.hex
+      },
+      extra_nonce_1: this.ExtraNonce1.hex
+    }
+
+    if (this.GeneralPurposeBits) json.share["bits"] = this.GeneralPurposeBits.hex
+
+    return json
+  }
+
+  static fromJSON(x): Solution | undefined {
+    if (!x.share || !x.extra_nonce_1 ||
+      !x.share.timestamp || !x.share.nonce || !x.share.extra_nonce_2 ||
+      typeof x.share !== 'string' ||
+      typeof x.extra_nonce_1 !== 'string' ||
+      typeof x.share.timestamp !== 'string' ||
+      typeof x.share.nonce !== 'string' ||
+      typeof x.share.extra_nonce_2 !== 'string' ||
+      (!!x.share.bits && typeof x.share.bits !== 'string')) return
+
+    let time = UInt32Little.fromHex(x.share.timestamp)
+    if (time === undefined) return
+
+    let en1 = UInt32Big.fromHex(x.extra_nonce_1)
+    if (en1 === undefined) return
+
+    let en2 = Bytes.fromHex(x.share.extra_nonce_2)
+    if (en2 === undefined) return
+
+    let n = UInt32Little.fromHex(x.share.nonce)
+    if (n === undefined) return
+
+    let gpr: Int32Little | undefined
+    if (!!x.share.bits) {
+      gpr = Int32Little.fromHex(x.share.bits)
+      if (gpr === undefined) return
+    }
+
+    return new Solution(time, en1, en2, n, gpr)
+  }
 }
 
 export function meta(p: Puzzle, x: Solution): Bytes {
