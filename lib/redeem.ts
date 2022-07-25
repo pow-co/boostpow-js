@@ -370,7 +370,7 @@ export class Redeem {
         return this.toScript().toString()
     }
 
-    toBuffer(): Bytes {
+    toBuffer(): Buffer {
         return this.toScript().toBuffer()
     }
 
