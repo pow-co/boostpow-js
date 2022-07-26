@@ -10,6 +10,8 @@ import * as work from './work/proof'
 import { Redeem } from './redeem'
 import { Metadata } from './metadata'
 import { Utils } from './utils'
+import { Output } from './output'
+import { Puzzle } from './puzzle'
 
 export class Job {
   private constructor(
@@ -529,7 +531,6 @@ export class Job {
     const tx = new bsv.Transaction(rawtx)
     return Job.fromTransaction(tx, vout)
   }
-
   /**
    * Create a transaction fragment that can be modified to redeem the boost job
    *
@@ -541,7 +542,7 @@ export class Job {
     boostPowJob: Job,
     boostPowJobProof: Redeem,
     privateKeyStr: string,
-    receiveAddressStr: string): bsv.Transaction | null {
+    receiveAddressStr: string, sats_per_byte: number = .5): bsv.Transaction {
     const boostPowString = Job.tryValidateJobProof(boostPowJob, boostPowJobProof)
     if (!boostPowString) {
       throw new Error('createRedeemTransaction: Invalid Job Proof')
@@ -553,56 +554,11 @@ export class Job {
 
     if (boostPowJob.vout === undefined) throw new Error('createRedeemTransaction: job requires vout')
 
-    let tx = new bsv.Transaction()
-    tx.addInput(
-      new bsv.Transaction.Input({
-        output: new bsv.Transaction.Output({
-          script: boostPowJob.toScript(),
-          satoshis: boostPowJob.value
-        }),
-        prevTxId: boostPowJob.txid,
-        outputIndex: boostPowJob.vout,
-        script: bsv.Script.empty()
-      })
-    )
-
-    const privKey = new bsv.PrivateKey(privateKeyStr)
-    const sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID
-    const flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
-      bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
-
-    const receiveSats = boostPowJob.value !== undefined ? boostPowJob.value : 0
-    tx.addOutput(new bsv.Transaction.Output({
-      script: bsv.Script(new bsv.Address(receiveAddressStr)),
-      satoshis: receiveSats ? receiveSats - 517 : 0 //subtract miner fee
-    }))
-
-    const signature = bsv.Transaction.Sighash.sign(tx,
-      privKey, sigtype, 0, tx.inputs[0].output.script,
-      new bsv.crypto.BN(tx.inputs[0].output.satoshis), flags)
-
-    const unlockingScript = new bsv.Script({})
-    unlockingScript
-      .add(
-        Buffer.concat([
-          signature.toBuffer(),
-          Buffer.from([sigtype & 0xff])
-        ])
-      )
-      .add(privKey.toPublicKey().toBuffer())
-      .add(boostPowJobProof.nonce.buffer)
-      .add(boostPowJobProof.time.buffer)
-      .add(boostPowJobProof.extraNonce2.buffer)
-      .add(boostPowJobProof.extraNonce1.buffer)
-
-    if (boostPowJobProof.minerPubKeyHash) {
-      unlockingScript.add(boostPowJobProof.minerPubKeyHash.buffer)
-    }
-
-    tx.inputs[0].setScript(unlockingScript)
-    return tx
+    return new bsv.Transaction(
+      new Puzzle(new Output(boostPowJob), privateKeyStr).createRedeemTransaction(
+        boostPowJobProof.solution,
+        receiveAddressStr,
+        sats_per_byte))
   }
 
   static puzzle(boostPowJob: Job, address?: Digest20): work.Puzzle {

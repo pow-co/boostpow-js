@@ -12,7 +12,7 @@ export class Output {
   _txid: Digest32 | undefined
   _vout: number | undefined
 
-  constructor(job: Job, value?: bigint, txid?: Digest32, vout?: number) {
+  constructor(job: Job, value?: number, txid?: Digest32, vout?: number) {
     this.script = job
     if (value !== undefined) this._value = value
     else if (job.value === undefined) throw "invalid output: missing parameter value"

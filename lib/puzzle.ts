@@ -6,6 +6,9 @@ import { Redeem } from './redeem'
 import { Digest32 } from './fields/digest32'
 import { Digest20 } from './fields/digest20'
 import { Bytes } from './fields/bytes'
+import { estimateTransactionSize,
+  writeTransaction,
+  writeIncompleteTransaction } from './transaction'
 
 // Puzzle represents a Boost output that has had a private key assigned to it.
 // This may have happened before or after the output was created, depending on
@@ -68,5 +71,47 @@ export class Puzzle {
       this.output.script.isBounty(),
       this.output.script.scriptVersion == 2,
       this.key.compressed)
+  }
+
+  createRedeemTransaction(
+    solution: work.Solution,
+    receiveAddress: string,
+    sats_per_byte: number): Buffer {
+
+    // step 1. create incomplete transaction.
+    let tx = {
+      version: 2,
+      inputs: [
+        {
+          prevTxId: this.output.txid.buffer,
+          outputIndex: this.output.vout,
+          scriptSize: this.expectedRedeemScriptSize()
+        }
+      ],
+      outputs: [
+        {
+          satoshis: 0,
+          script: bsv.Script(new bsv.Address(receiveAddress)).toBuffer()
+        }
+      ]
+    }
+
+    // steps 2 - 3: get fee
+    let fee = Math.ceil(estimateTransactionSize(tx) * sats_per_byte)
+    if (fee > this.output.value) throw "not enough sats to be worth it"
+    tx.outputs[0].satoshis = this.output.value - fee
+
+    // steps 4 - 6
+    return writeTransaction({
+      version: 1,
+      inputs: [
+        {
+          prevTxId: this.output.txid.buffer,
+          outputIndex: this.output.vout,
+          script: this.redeem(solution, writeIncompleteTransaction(tx), 0).toBuffer()
+        }
+      ],
+      outputs: tx.outputs
+    })
   }
 }
