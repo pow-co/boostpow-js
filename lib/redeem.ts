@@ -145,6 +145,10 @@ export class Redeem {
       return !!this.MinerPubKeyHash
     }
 
+    get solution(): work.Solution {
+      return new work.Solution(this.time, this.extraNonce1, this.extraNonce2, this.nonce, this.generalPurposeBits)
+    }
+
     toObject () {
       let obj = {
         // Output to string first, then flip endianness so we do not accidentally modify underlying buffer
@@ -370,7 +374,7 @@ export class Redeem {
         return this.toScript().toString()
     }
 
-    toBuffer(): Bytes {
+    toBuffer(): Buffer {
         return this.toScript().toBuffer()
     }
 
@@ -380,5 +384,15 @@ export class Redeem {
 
     static fromString(str: string, txid?: string, vin?: number): Redeem {
         return Redeem.fromHex(str, txid, vin)
+    }
+
+    // the expected size of a complete script.
+    static expectedSize(
+      is_boundy: boolean,
+      use_general_purpose_bits: boolean,
+      compressed_pubkey: boolean): number {
+        return 96 + (compressed_pubkey ? 34 : 66) +
+          (is_boundy ? 21 : 0) +
+          (use_general_purpose_bits ? 5 : 0)
     }
 }
