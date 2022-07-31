@@ -46,7 +46,6 @@ export class Solution {
   static fromJSON(x): Solution | undefined {
     if (!x.share || !x.extra_nonce_1 ||
       !x.share.timestamp || !x.share.nonce || !x.share.extra_nonce_2 ||
-      typeof x.share !== 'string' ||
       typeof x.extra_nonce_1 !== 'string' ||
       typeof x.share.timestamp !== 'string' ||
       typeof x.share.nonce !== 'string' ||
