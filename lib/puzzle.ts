@@ -6,9 +6,7 @@ import { Redeem } from './redeem'
 import { Digest32 } from './fields/digest32'
 import { Digest20 } from './fields/digest20'
 import { Bytes } from './fields/bytes'
-import { estimateTransactionSize,
-  writeTransaction,
-  writeIncompleteTransaction } from './transaction'
+import * as tx_build from './transaction'
 
 // Puzzle represents a Boost output that has had a private key assigned to it.
 // This may have happened before or after the output was created, depending on
@@ -44,7 +42,7 @@ export class Puzzle {
   redeem(
     solution: work.Solution,
     // the incomplete tx that will be signed (the input scripts are missing)
-    incomplete_transaction: Buffer | bsv.Transaction,
+    incomplete_transaction: Buffer | bsv.Transaction | tx_build.incomplete_transaction,
     // the index of the input script that we are creating.
     input_index: number,
     sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID,
@@ -55,15 +53,12 @@ export class Puzzle {
     if (!new work.Proof(this.workPuzzle, solution).valid()) throw new Error('invalid solution')
 
     return Redeem.fromSolution(
-      new Bytes(
-        Buffer.concat([
-          bsv.Transaction.Sighash.sign(
-            new bsv.Transaction(incomplete_transaction), this.key, sigtype,
-            input_index, this.output.script.toScript(),
-            new bsv.crypto.BN(this.output.value), flags).toBuffer(),
-          Buffer.from([sigtype & 0xff])
-        ])), this.pubkey, solution, this._address)
-
+      new Bytes(tx_build.sign(this.key, {
+        satoshis: this.output.value,
+        scriptCode: this.output.script.toScript(),
+        inputIndex: input_index,
+        incompleteTransaction: incomplete_transaction
+      }, sigtype, flags)), this.pubkey, solution, this._address)
   }
 
   expectedRedeemScriptSize(): number {
@@ -80,7 +75,7 @@ export class Puzzle {
 
     // step 1. create incomplete transaction.
     let tx = {
-      version: 2,
+      version: 1,
       inputs: [
         {
           prevTxId: this.output.txid.buffer,
@@ -97,18 +92,18 @@ export class Puzzle {
     }
 
     // steps 2 - 3: get fee
-    let fee = Math.ceil(estimateTransactionSize(tx) * sats_per_byte)
+    let fee = Math.ceil(tx_build.estimateTransactionSize(tx) * sats_per_byte)
     if (fee > this.output.value) throw "not enough sats to be worth it"
     tx.outputs[0].satoshis = this.output.value - fee
 
     // steps 4 - 6
-    return writeTransaction({
+    return tx_build.writeTransaction({
       version: 1,
       inputs: [
         {
           prevTxId: this.output.txid.buffer,
           outputIndex: this.output.vout,
-          script: this.redeem(solution, writeIncompleteTransaction(tx), 0).toBuffer()
+          script: this.redeem(solution, tx, 0).toBuffer()
         }
       ],
       outputs: tx.outputs

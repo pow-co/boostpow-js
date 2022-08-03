@@ -34,7 +34,7 @@ interface incomplete_input {
 
   // you are required to correctly estimate the script size here. Signatures
   // should be estimated to have size 73, which is the maximum signature size.
-  scriptSize: number ,
+  scriptSize: number,
 
   // default is 0xffffffff, which indicates that the input is finalized, insofar
   // as no higher number is possible.
@@ -43,7 +43,7 @@ interface incomplete_input {
 
 export interface output {
   satoshis: number,
-  script: Buffer | string
+  script: Buffer | string | bsv.Script
 }
 
 export interface incomplete_transaction {
@@ -72,7 +72,7 @@ export function estimateTransactionSize(x: incomplete_transaction): number {
 export interface input {
   prevTxId: Buffer | string | Digest32,
   outputIndex: number | UInt32Little,
-  script: Buffer | string,
+  script: Buffer | string | bsv.Script,
   sequenceNumber?: number | UInt32Little
 }
 
@@ -194,4 +194,64 @@ export function writeIncompleteTransaction(tx: incomplete_transaction): Buffer {
     outputs: tx.outputs,
     locktime: tx.locktime
   })
+}
+
+interface document {
+  // required for FORKID signatures, not required for
+  // the original signature algorithm.
+  satoshis?: number,
+
+  // for FORKID, the output script. For the original
+  // algorithm, the script before the last OP_CODESEPARATOR
+  // before the signature with all OP_CODESEPARATORs and
+  // previous instances of the signature removed.
+  scriptCode: Buffer | string | bsv.Script,
+
+  // the index of the input which contains this signature.
+  inputIndex: number,
+
+  incompleteTransaction: Buffer | bsv.Transaction | incomplete_transaction
+}
+
+export function sign(
+  wif: string | bsv.PrivateKey,
+  doc: document,
+  sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID,
+  flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES): Buffer {
+
+    let tx = doc.incompleteTransaction instanceof bsv.Transaction ||
+      doc.incompleteTransaction instanceof Buffer ?
+      doc.incompleteTransaction :
+      writeIncompleteTransaction(doc.incompleteTransaction)
+    return Buffer.concat([
+      bsv.Transaction.Sighash.sign(
+        new bsv.Transaction(tx),
+        new bsv.PrivateKey(wif), sigtype,
+        doc.inputIndex, new bsv.Script(doc.scriptCode),
+        new bsv.crypto.BN(doc.satoshis), flags).toBuffer(),
+      Buffer.from([sigtype & 0xff])
+    ])
+}
+
+export function verify(
+  pubkey: Buffer | bsv.PublicKey,
+  sig: Buffer,
+  doc: document,
+  flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
+  bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
+  bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+  bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES): boolean {
+  let tx = doc.incompleteTransaction instanceof bsv.Transaction ||
+    doc.incompleteTransaction instanceof Buffer ?
+    doc.incompleteTransaction :
+    writeIncompleteTransaction(doc.incompleteTransaction)
+  let pub = pubkey instanceof Buffer ? bsv.PublicKey.fromBuffer(pubkey) : pubkey
+  return bsv.Transaction.Sighash.verify(
+    new bsv.Transaction(tx),
+    new bsv.crypto.Signature.fromTxFormat(sig), pub, doc.inputIndex,
+    new bsv.Script(doc.scriptCode),
+    new bsv.crypto.BN(doc.satoshis), flags)
 }
