@@ -71,7 +71,11 @@ export class Puzzle {
   createRedeemTransaction(
     solution: work.Solution,
     receiveAddress: string,
-    sats_per_byte: number): Buffer {
+    sats_per_byte: number,
+    op_return: string[]=[
+      'boostpow',
+      'proof'
+    ]): Buffer {
 
     // step 1. create incomplete transaction.
     let tx = {
@@ -90,7 +94,7 @@ export class Puzzle {
         },
         {
           satoshis: 0,
-          script: bsv.Script.buildSafeDataOut(['boostpow', 'proof']).toBuffer()
+          script: bsv.Script.buildSafeDataOut(op_return).toBuffer()
         }
       ]
     }
