@@ -87,6 +87,10 @@ export class Puzzle {
         {
           satoshis: 0,
           script: bsv.Script(new bsv.Address(receiveAddress)).toBuffer()
+        },
+        {
+          satoshis: 0,
+          script: bsv.Script.buildSafeDataOut(['boostpow', 'proof']).toBuffer()
         }
       ]
     }
