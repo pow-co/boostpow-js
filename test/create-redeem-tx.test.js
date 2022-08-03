@@ -55,7 +55,9 @@ describe("boost Puzzle createRedeemTransaction", () => {
     let sats_per_byte = .2
 
     let tx = new index.Puzzle(output, wif).createRedeemTransaction(
-      jobProof.solution, "1264UeZnzrjrMdYn1QSED5TCbY8Gd11e23", sats_per_byte
+      jobProof.solution, "1264UeZnzrjrMdYn1QSED5TCbY8Gd11e23", sats_per_byte, [
+        "boostpow", "proof"
+      ]
     )
 
     let bsv_tx = index.bsv.Transaction(tx).toJSON()
