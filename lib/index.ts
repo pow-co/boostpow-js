@@ -25,5 +25,6 @@ export { Puzzle } from './puzzle'
 export { BoostPowString } from './work/string'
 export { Job as BoostPowJob }
 export { Redeem as BoostPowJobProof }
+export { Redeem as Proof }
 export { Metadata as BoostPowMetadata }
 export { Utils as BoostUtilsHelper }
