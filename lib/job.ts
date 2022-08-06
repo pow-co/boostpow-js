@@ -491,7 +491,7 @@ export class Job {
       return undefined
     }
 
-    let tx: bsv.Transaction = new bsv.Transaction(t)
+    let tx: bsv.Transaction = t instanceof Buffer || typeof t === 'string' ? new bsv.Transaction(t) : t
 
     if (vout > tx.outputs.length - 1 || vout < 0 || vout === undefined || vout === null) {
       return undefined
@@ -528,8 +528,7 @@ export class Job {
       return undefined
     }
 
-    const tx = new bsv.Transaction(rawtx)
-    return Job.fromTransaction(tx, vout)
+    return Job.fromTransaction(rawtx, vout)
   }
   /**
    * Create a transaction fragment that can be modified to redeem the boost job
