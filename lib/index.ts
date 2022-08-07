@@ -21,6 +21,8 @@ export { Metadata }
 export { Utils }
 export { Output } from './output'
 export { Puzzle } from './puzzle'
+export { Input } from './input'
+export { Proof } from './proof'
 
 export { BoostPowString } from './work/string'
 export { Job as BoostPowJob }

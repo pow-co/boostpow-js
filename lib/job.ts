@@ -277,6 +277,7 @@ export class Job {
   }
 
   private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: number): Job {
+
     let category
     let content
     let diff
@@ -420,8 +421,8 @@ export class Job {
     )
   }
 
-  static fromHex(asm: string, txid?: string, vout?: number, value?: number): Job {
-    return Job.readScript(new bsv.Script(asm), txid, vout, value)
+  static fromHex(hex: string, txid?: string, vout?: number, value?: number): Job {
+    return Job.readScript(new bsv.Script(hex), txid, vout, value)
   }
 
   static fromASM(asm: string, txid?: string, vout?: number, value?: number): Job {
@@ -499,7 +500,7 @@ export class Job {
 
     if (tx.outputs[vout].script && tx.outputs[vout].script.chunks[0].buf &&
       tx.outputs[vout].script.chunks[0].buf.toString('hex') === Buffer.from('boostpow', 'utf8').toString('hex')) {
-      return Job.readScript(tx.outputs[vout].script, tx.hash, vout, tx.outputs[vout].satoshis)
+      return Job.readScript(new bsv.Script(tx.outputs[vout].script.toHex()), tx.hash, vout, tx.outputs[vout].satoshis)
     }
 
     return undefined

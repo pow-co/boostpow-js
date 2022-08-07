@@ -1,6 +1,7 @@
 import * as bsv from '../bsv'
 import { Int32Little } from '../fields/int32Little'
 import { UInt32Little } from '../fields/uint32Little'
+import { UInt16Little } from '../fields/uint16Little'
 import { UInt32Big } from '../fields/uint32Big'
 import { Digest32 } from '../fields/digest32'
 import { Bytes } from '../fields/bytes'
@@ -115,24 +116,42 @@ export function pow_string(p: Puzzle, x: Solution): PowString | undefined {
 
 // TODO the puzzle also needs to contain a Merkle branch but for Boost that is empty.
 export class Proof {
+  String: PowString | undefined
   constructor(
     public Puzzle: Puzzle,
-    public Solution: Solution) {}
+    public Solution: Solution) {
+    this.String = pow_string(this.Puzzle, this.Solution)
+  }
+
+  valid(): boolean {
+    if (this.String) return this.String.valid()
+    return false
+  }
+
+  puzzle(): Puzzle {
+    return this.Puzzle
+  }
+
+  solution(): Solution {
+    return this.Solution
+  }
 
   metadata(): Bytes {
     return meta(this.Puzzle, this.Solution)
   }
 
-  string(): PowString | undefined {
-    return pow_string(this.Puzzle, this.Solution)
+  string(): PowString {
+    if (this.String === undefined) throw "work proof is invalid"
+    return this.String
   }
 
-  valid(): boolean {
-    let x = this.string()
-    if (x) {
-      return x.valid()
-    }
+  get category(): Int32Little {
+    if (this.String === undefined) throw "work proof is invalid"
+    return this.String.category
+  }
 
-    return false
+  get magicNumber(): UInt16Little {
+    if (this.String === undefined) throw "work proof is invalid"
+    return this.String.magicNumber
   }
 }
