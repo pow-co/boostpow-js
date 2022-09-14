@@ -9,7 +9,7 @@
     "tsc": "tsc",
     "build": "tsc && webpack",
     "bt": "npm run build && npm run test",
-    "test": "mocha --reporter spec test/*.js test*.ts",
+    "test": "nyc --reporter=lcov mocha --require=ts-node/register test/*.js test/**/*.js",
     "test_submitBoostJob": "mocha --reporter spec --grep 'submitBoostJob'",
     "test_BoostPowMetadata": "mocha --reporter spec --grep 'BoostPowMetadata'",
     "test_BoostPowJobProof": "mocha --reporter spec --grep 'BoostPowJobProof'",
