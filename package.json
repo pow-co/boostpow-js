@@ -26,8 +26,8 @@
     "check-coverage": false,
     "all": true,
     "include": [
-      "list/*.ts",
-      "list/**/*.ts"
+      "lib/*.ts",
+      "lib/**/*.ts"
     ],
     "reporter": "lcov",
     "report-dir": "./coverage"
