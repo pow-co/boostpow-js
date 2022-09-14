@@ -12,6 +12,12 @@ jobs:
           name: Run Tests
           command: npm test
       - run:
+          name: Report Code Coverage
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov
+      - run:
           name: Build From Source
           command: npm run build
       - run:

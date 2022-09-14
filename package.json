@@ -22,6 +22,16 @@
     "commit": "npx cz",
     "semantic-release": "npx semantic-release"
   },
+  "nyc": {
+    "check-coverage": false,
+    "all": true,
+    "include": [
+      "list/*.ts",
+      "list/**/*.ts"
+    ],
+    "reporter": "lcov",
+    "report-dir": "./coverage"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/pow-co/boostpow-js.git"
@@ -61,6 +71,7 @@
     "cz": "^1.8.2",
     "cz-conventional-changelog": "^3.3.0",
     "mocha": "^8.4.0",
+    "nyc": "^15.1.0",
     "semantic-release": "^19.0.2",
     "streamqueue": "^1.1.2",
     "ts-loader": "^9.2.8",
