@@ -88,6 +88,8 @@ export class Utils {
     if (!isFinite(difficulty)) {
       throw 'difficulty cannot be infinite'
     }
+    if(difficulty===0)
+      throw 'difficulty cannot be zero';
 
     var absolute = parseFloat(Utils.getTargetDifficulty(Utils.unitBits()).toString(10)) / difficulty
 
