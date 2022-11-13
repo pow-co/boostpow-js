@@ -70,7 +70,7 @@
     "copy-webpack-plugin": "^10.2.4",
     "cz": "^1.8.2",
     "cz-conventional-changelog": "^3.3.0",
-    "mocha": "^8.4.0",
+    "mocha": "^10.1.0",
     "nyc": "^15.1.0",
     "semantic-release": "^19.0.2",
     "streamqueue": "^1.1.2",
