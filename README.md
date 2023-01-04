@@ -4,8 +4,8 @@
 
 Boost is a new type of content ranking system that enables users to increase the amount of energy required to mine or process their content. Users will boost their post as a way to signal to the network that they believe their information is valuable. Boosted posts will appear in the boost feed – ordered by the amount of energy requested for their information.
 
-[![ProofOfWorkCompany](https://circleci.com/gh/ProofOfWorkCompany/boostpow-js.svg?style=shield)](https://circleci.com/gh/ProofOfWorkCompany/boostpow-js)
-[![Node.js CI](https://github.com/ProofOfWorkCompany/boostpow-js/actions/workflows/node.js.yml/badge.svg)](https://github.com/ProofOfWorkCompany/boostpow-js/actions/workflows/node.js.yml)
+[![ProofOfWorkCompany](https://circleci.com/gh/pow-co/boostpow-js.svg?style=shield)](https://circleci.com/gh/ProofOfWorkCompany/boostpow-js)
+[![Node.js CI](https://github.com/pow-co/boostpow-js/actions/workflows/node.js.yml/badge.svg)](https://github.com/ProofOfWorkCompany/boostpow-js/actions/workflows/node.js.yml)
 [![npm version](https://badge.fury.io/js/boostpow.svg)](https://badge.fury.io/js/boostpow)
 [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
@@ -97,37 +97,7 @@ twetchPay.pay({
 
 ```
 
-# Boost Content Ranking
 
-Easily query your own content and cross check against Boost POW signals to obtain the Boost Rank.
-
-It leaves your existing objects the same, but adds a 'hash' and 'boostpow' member variables added to your objects.
-
-## Publish Widget
-
-<a href='https://publish.boost.pow.co/docs.html'>Open Docs</a>
-
-<a href='https://publish.boost.pow.co'>Sample Boost Widget</a>
-
-Boost Publisher Widget is a simple way to boost content from your website.
-
-Currently supported wallets are TwetchPay, Money Button and RelayX.
-
-The simplest Boost Publisher usage looks like this:
-
-```javascript
-// in HTML
-<script src="https://publish.boost.pow.co/publish.js"></script>
-
-// in javascript
-boostPublish.open({
-  outputs: [],
-  onPayment: function(payment, boostJobStatus) {
-	  console.log(payment, boostJobStatus);
-  }
-});
-
-```
 
 ## Build and Test
 
@@ -145,4 +115,5 @@ Daniel Krawisz - daniel@pow.co
 Derrick Horton - derrick@pow.co
 Rafael LaVerde - rafael@pow.co
 Steven Zeiler  - steven@pow.co
+
 
