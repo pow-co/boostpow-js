@@ -241,8 +241,7 @@ export class Redeem {
       let minerPubKeyHash
       let generalPurposeBits
 
-      if (
-          7 === script.chunks.length &&
+      if (6 === script.chunks.length &&
 
           // signature
           script.chunks[0].len &&
@@ -260,14 +259,40 @@ export class Redeem {
           script.chunks[4].len &&
 
           // extra Nonce 1
+          script.chunks[5].len) {
+
+      } else if (
+          7 === script.chunks.length &&
+
+          // signature
+          script.chunks[0].len &&
+
+          // minerPubKey
+          script.chunks[1].len &&
+
+          // nonce
+          script.chunks[2].len &&
+
+          // time
+          script.chunks[3].len &&
+
+          // extra Nonce 1
           script.chunks[5].len &&
 
-          // minerPubKeyHash
+          // minerPubKeyHash OR general purpose bits.
           script.chunks[6].len
 
       ) {
-
+        if (script.chunks[6].len === 4 &&
+          ((script.chunks[4].buf && script.chunks[4].len <= 20) ||
+            script.chunks[4].opcodenum == bsv.Opcode.OP_0 ||
+            script.chunks[4].opcodenum == bsv.Opcode.OP_1NEGATE ||
+            (script.chunks[4].opcodenum >= bsv.Opcode.OP_1 && script.chunks[6].opcodenum <= bsv.Opcode.OP_16))
+        ) {
+          generalPurposeBits = new UInt32Little(script.chunks[6].buf)
+        } else {
           minerPubKeyHash = new Digest20(script.chunks[6].buf)
+        }
 
       } else if (
 
