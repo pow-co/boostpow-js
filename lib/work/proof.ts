@@ -85,7 +85,6 @@ export function meta(p: Puzzle, x: Solution): Bytes {
 
 export function pow_string(p: Puzzle, x: Solution): PowString | undefined {
   var category: Buffer
-
   if (p.Mask) {
     var generalPurposeBits = x.GeneralPurposeBits
     if (generalPurposeBits) {
