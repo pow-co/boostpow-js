@@ -13,6 +13,17 @@ import { Utils } from './utils'
 import { Output } from './output'
 import { Puzzle } from './puzzle'
 
+interface json_job {
+    content: string,
+    diff: number,
+    category?: string,
+    tag?: string,
+    additionalData?: string,
+    userNonce?: string,
+    minerPubKeyHash?: string,
+    useGeneralPurposeBits?: boolean
+}
+
 export class Job {
   private constructor(
     // The hash of the content to be boosted.
@@ -105,16 +116,7 @@ export class Job {
     return UInt16Little.fromNumber(Utils.magicNumber(this.category.number))
   }
 
-  static fromObject(params: {
-    content: string,
-    diff: number,
-    category?: string,
-    tag?: string,
-    additionalData?: string,
-    userNonce?: string,
-    minerPubKeyHash?: string,
-    useGeneralPurposeBits?: boolean
-  }): Job {
+  static fromObject(params: json_job): Job {
 
     if (params.content && params.content.length > 64) {
       throw new Error('content too large. Max 32 bytes.')
@@ -172,7 +174,7 @@ export class Job {
     )
   }
 
-  toObject () {
+  toObject (): json_job {
     if (this.minerPubKeyHash) {
       return {
         content: this.content.hex,
@@ -252,9 +254,11 @@ export class Job {
 
   static remainingOperationsMatchExactly(remainingChunks, start: number, expectedOps): boolean {
     let i = 0
+
     if ((remainingChunks.length - start) !== expectedOps.length) {
       return false
     }
+
     while (i < (remainingChunks.length - start)) {
       if (
         (
@@ -334,6 +338,7 @@ export class Job {
         script.chunks[7].opcodenum == bsv.Opcode.OP_1NEGATE ||
         (script.chunks[7].opcodenum >= bsv.Opcode.OP_1 && script.chunks[7].opcodenum <= bsv.Opcode.OP_16))
       ) {
+
         if (Job.remainingOperationsMatchExactly(script.chunks, 8, Job.scriptOperationsV1NoASICBoost())) {
           useGeneralPurposeBits = false
         } else if (Job.remainingOperationsMatchExactly(script.chunks, 8, Job.scriptOperationsV2ASICBoost())) {
@@ -787,8 +792,8 @@ export class Job {
       bsv.Opcode.OP_6,
       bsv.Opcode.OP_ROLL,
       bsv.Opcode.OP_SIZE,
-      Buffer.from("0120", "hex"),                   // push 32 to the stack.
-      bsv.Opcode.OP_GREATERTHANOREQUAL,
+      Buffer.from("20", "hex"),                   // push 32 to the stack.
+      bsv.Opcode.OP_LESSTHANOREQUAL,
       bsv.Opcode.OP_VERIFY,
       bsv.Opcode.OP_CAT,
 
