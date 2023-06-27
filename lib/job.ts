@@ -280,7 +280,7 @@ export class Job {
     return true
   }
 
-  private static readScript(script: bsv.Script, txid?: string, vout?: number, value?: number): Job {
+  public static readScript(script: bsv.Script, txid?: string, vout?: number, value?: number): Job {
     let category
     let content
     let diff
@@ -491,6 +491,12 @@ export class Job {
     return bsv.crypto.Hash.sha256(buffer).reverse().toString('hex')
   }
 
+  /**
+   * @deprecated
+   * @param t 
+   * @param vout 
+   * @returns 
+   */
   static fromTransaction(t: bsv.Transaction | Buffer | string, vout: number = 0): Job | undefined {
     if (!t) {
       return undefined

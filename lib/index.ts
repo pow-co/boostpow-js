@@ -27,3 +27,4 @@ export { Job as BoostPowJob }
 export { Redeem as BoostPowJobProof }
 export { Metadata as BoostPowMetadata }
 export { Utils as BoostUtilsHelper }
+export * as transaction from './transaction'

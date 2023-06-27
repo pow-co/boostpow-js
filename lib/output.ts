@@ -22,6 +22,13 @@ export class Output {
     else if (job.vout === undefined) throw "invalid output: missing parameter vout"
   }
 
+  /**
+   * 
+   * @deprecated
+   * @param tx 
+   * @param vout 
+   * @returns 
+   */
   static fromTransaction(tx: bsv.Transaction | Buffer, vout: number): Output | undefined {
     let j = Job.fromTransaction(tx, vout)
     if (j) return new Output(j)
