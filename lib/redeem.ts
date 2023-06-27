@@ -204,12 +204,17 @@ export class Redeem {
       return buildOut
     }
 
-    static fromTransaction(tx: bsv.Transaction): Redeem | undefined {
+    static fromTransaction(tx: bsv.Transaction, inp?: number): Redeem | undefined {
         if (!tx) {
             return undefined
         }
 
-        let inp = 0
+        if (!!inp) {
+          let input = tx.inputs[inp]
+          return Redeem.fromScript(input.script, tx.hash, inp, input.prevTxId.toString('hex'), input.outputIndex)
+        }
+
+        inp = 0
         for (const input of tx.inputs) {
             try {
                 return Redeem.fromScript(input.script, tx.hash, inp, input.prevTxId.toString('hex'), input.outputIndex)
