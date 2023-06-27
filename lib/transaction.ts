@@ -1,7 +1,18 @@
+import { Job } from './job'
 import * as bsv from './bsv'
-import { Digest32 } from './fields/digest32'
 import { Int32Little } from './fields/int32Little'
 import { UInt32Little } from './fields/uint32Little'
+import { UInt16Little } from './fields/uint16Little'
+import { Digest32 } from './fields/digest32'
+import { Digest20 } from './fields/digest20'
+import { Bytes } from './fields/bytes'
+import { Difficulty } from './fields/difficulty'
+import * as work from './work/proof'
+import { Redeem } from './redeem'
+import { Metadata } from './metadata'
+import { Utils } from './utils'
+import { Output } from './output'
+import { Puzzle } from './puzzle'
 
 // How to create a transaction:
 //
@@ -234,6 +245,50 @@ export function sign(
         new bsv.crypto.BN(doc.satoshis), flags).toBuffer(),
       Buffer.from([sigtype & 0xff])
     ])
+}
+export interface ScriptsFound {
+  jobs: Record<number, Job>;
+  redemptions: Record<string, Redeem>;
+
+}
+/**
+ *
+ *
+ * @export
+ * @param {(bsv.Transaction | Buffer | string)} t
+ * @return {*}  {(ScriptsFound | undefined)}
+ */
+export function fromTransaction(t:bsv.Transaction | Buffer | string): ScriptsFound | undefined {
+  if (!t) {
+      return undefined
+    }
+  const tx: bsv.Transaction = new bsv.Transaction(t)
+  let curJobs: Record<number, Job> = {};
+  t.outputs.forEach((output, index) => {
+    if(output.script && output.script.chunks[0].buf && 
+      output.script.chunks[0].buf.toString('hex') === Buffer.from('boostpow', 'utf8').toString('hex')) {
+      let job = Job.readScript(output.script, t.hash, index, output.satoshis);
+      if(job) {
+        curJobs[index] = job;
+      }
+    }
+  });
+  let curRedemptions:Record<string, Redeem> = {};
+  t.inputs.forEach((input, index) => {
+    try {
+      let redeem = Redeem.fromScript(input.script, t.hash, index, input.prevTxId.toString('hex'), input.outputIndex);
+      if(redeem) {
+        curRedemptions[index] = redeem;
+      }
+    } catch (ex) {
+      // Skip and try another output
+    }
+  });
+
+  return {
+    jobs: curJobs,
+    redemptions: curRedemptions
+  };
 }
 
 export function verify(

@@ -203,7 +203,11 @@ export class Redeem {
 
       return buildOut
     }
-
+    /**
+     * @deprecated
+     * @param tx 
+     * @returns 
+     */
     static fromTransaction(tx: bsv.Transaction): Redeem | undefined {
         if (!tx) {
             return undefined
@@ -231,7 +235,7 @@ export class Redeem {
         return Redeem.fromTransaction(tx)
     }
 
-    private static fromScript(script: bsv.Script, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
+    public static fromScript(script: bsv.Script, txid?: string, vin?: number, spentTxid?: string, spentVout?: number): Redeem {
       let signature
       let minerPubKey
       let time
