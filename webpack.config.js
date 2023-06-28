@@ -2,6 +2,8 @@ const path = require(`path`);
 const NodePolyfillPlugin = require("node-polyfill-webpack-plugin")
 const CopyPlugin = require("copy-webpack-plugin");
 
+const { version } = require('./package')
+
 module.exports = {
     entry: `./lib/index.ts`,
     module: {
@@ -19,7 +21,8 @@ module.exports = {
     target: 'web',
     output: {
         path: path.resolve(__dirname, `dist`),
-        filename: `boostpow.js`
+        filename: `boostpow-${version}.js`,
+        library: 'boostpow'
     },
     plugins: [new NodePolyfillPlugin(),
     new CopyPlugin({
