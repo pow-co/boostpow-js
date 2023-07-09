@@ -1,4 +1,4 @@
-import * as bsv from './bsv'
+import * as bsv from 'bsv'
 
 export class Utils {
 

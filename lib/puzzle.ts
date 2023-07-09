@@ -1,4 +1,4 @@
-import * as bsv from './bsv'
+import * as bsv from 'bsv'
 import * as work from './work/proof'
 import { Job } from './job'
 import { Output } from './output'

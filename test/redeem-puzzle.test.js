@@ -1,7 +1,7 @@
 "use strict"
 const expect = require("chai").expect
 const index = require("..")
-
+const bsv = require("bsv")
 describe("test from raw transaction", () => {
 
   const proofs = [
@@ -51,9 +51,9 @@ describe("test from raw transaction", () => {
 
   it("should read the transactions correctly and verify the proof", async () => {
     for (const proof of proofs) {
-      const jobs = index.BoostPowJob.fromTransactionGetAllOutputs(index.bsv.Transaction(proof.spend))
+      const jobs = index.BoostPowJob.fromTransactionGetAllOutputs(bsv.Transaction(proof.spend))
       expect(jobs.length).to.equal(1)
-      const solution = index.BoostPowJobProof.fromTransaction(index.bsv.Transaction(proof.redeem))
+      const solution = index.BoostPowJobProof.fromTransaction(bsv.Transaction(proof.redeem))
       expect(solution).to.not.equal(undefined)
     }
   })
@@ -63,7 +63,7 @@ describe("test job tx", () => {
   let job_tx = "0100000001fb909bac8467358b237b061dff0972a1b0bd8130c737cf62974df98e81f69000070000006a47304402204472009adda55a9a0dc5929437966389e70b11086870e32cdba7fee3266fde7b0220294fd3207f5bd47bd353bcdde7da51668ff6a40874624ba8014f7e3e9be163b5412103ec39b0423638d608a82307647a62aea295949a8655c87574dc795865980e681dffffffff0220d6130000000000be08626f6f7374706f7775040000000020ae87e3d439cceb9a14aef9342d112dde71a4145542f7189c7e7e47550fd9f8920427b1131c000445eb0661007e7c557a766b7e52796b567a8254887e567a820120a1697e7c7eaa7c6b7e6b04ff1f00e076836b847c6c84856c7e7c8254887e6c7e7c8254887eaa01007e816c825488537f7681530121a5696b768100a0691d00000000000000000000000000000000000000000000000000000000007e6c539458959901007e819f6976a96c88acd8ef1900000000001976a9143974b6c2d5240e749e7ba99a51937fef35f8d42c88acdcef0b00"
 
   it("should read the transaction correctly", async () => {
-    const jobs = index.BoostPowJob.fromTransactionGetAllOutputs(index.bsv.Transaction(job_tx))
+    const jobs = index.BoostPowJob.fromTransactionGetAllOutputs(bsv.Transaction(job_tx))
     expect(jobs.length).to.equal(1)
   })
 })
@@ -93,10 +93,10 @@ describe("redeem output test ", () => {
   let nonceV1 = index.UInt32Little.fromNumber(151906)
   let nonceV2 = index.UInt32Little.fromNumber(305455)
 
-  let key = index.bsv.PrivateKey.fromWIF("KwKYRBpVWEYdQeA4uRGAu959BN4M1WpaTuetwsoBYES8CrVkxfLt")
+  let key = bsv.PrivateKey.fromWIF("KwKYRBpVWEYdQeA4uRGAu959BN4M1WpaTuetwsoBYES8CrVkxfLt")
   let pubkey = key.toPublicKey()
   let minerPubKeyHex = pubkey.toHex()
-  let minerPubKeyHashHex = index.bsv.Address.fromPublicKey(pubkey, key.network).toObject().hash
+  let minerPubKeyHashHex = bsv.Address.fromPublicKey(pubkey, key.network).toObject().hash
 
   let satoshis = 7500
   let txid = index.Digest32.fromHex("abcdef00112233445566778899abcdefabcdef00112233445566778899abcdef")
@@ -163,85 +163,85 @@ describe("redeem output test ", () => {
 
   // now we create the redemption transaction.
 
-  let txRedeemBountyV1 = new index.bsv.Transaction()
-  let txRedeemBountyV2 = new index.bsv.Transaction()
-  let txRedeemContractV1 = new index.bsv.Transaction()
-  let txRedeemContractV2 = new index.bsv.Transaction()
+  let txRedeemBountyV1 = new bsv.Transaction()
+  let txRedeemBountyV2 = new bsv.Transaction()
+  let txRedeemContractV1 = new bsv.Transaction()
+  let txRedeemContractV2 = new bsv.Transaction()
 
-  txRedeemBountyV1.addOutput(new index.bsv.Transaction.Output({
-    script: index.bsv.Script(new index.bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
+  txRedeemBountyV1.addOutput(new bsv.Transaction.Output({
+    script: bsv.Script(new bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
     satoshis: satoshis - 517
   }))
 
-  txRedeemBountyV2.addOutput(new index.bsv.Transaction.Output({
-    script: index.bsv.Script(new index.bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
+  txRedeemBountyV2.addOutput(new bsv.Transaction.Output({
+    script: bsv.Script(new bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
     satoshis: satoshis - 517
   }))
 
-  txRedeemContractV1.addOutput(new index.bsv.Transaction.Output({
-    script: index.bsv.Script(new index.bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
+  txRedeemContractV1.addOutput(new bsv.Transaction.Output({
+    script: bsv.Script(new bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
     satoshis: satoshis - 517
   }))
 
-  txRedeemContractV2.addOutput(new index.bsv.Transaction.Output({
-    script: index.bsv.Script(new index.bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
+  txRedeemContractV2.addOutput(new bsv.Transaction.Output({
+    script: bsv.Script(new bsv.Address("13wgYHWXXwgLsSQLQzb4s24SL5jScuYujy")),
     satoshis: satoshis - 517
   }))
 
   txRedeemBountyV1.addInput(
-    new index.bsv.Transaction.Input({
-      output: new index.bsv.Transaction.Output({
+    new bsv.Transaction.Input({
+      output: new bsv.Transaction.Output({
         script: puzzleBountyV1.output.script.toScript(),
         satoshis: satoshis
       }),
       prevTxId: txid.buffer,
       outputIndex: vout,
-      script: index.bsv.Script.empty()
+      script: bsv.Script.empty()
     })
   )
 
   txRedeemBountyV2.addInput(
-    new index.bsv.Transaction.Input({
-      output: new index.bsv.Transaction.Output({
+    new bsv.Transaction.Input({
+      output: new bsv.Transaction.Output({
         script: puzzleBountyV2.output.script.toScript(),
         satoshis: satoshis
       }),
       prevTxId: txid.buffer,
       outputIndex: vout,
-      script: index.bsv.Script.empty()
+      script: bsv.Script.empty()
     })
   )
 
   txRedeemContractV1.addInput(
-    new index.bsv.Transaction.Input({
-      output: new index.bsv.Transaction.Output({
+    new bsv.Transaction.Input({
+      output: new bsv.Transaction.Output({
         script: puzzleContractV1.output.script.toScript(),
         satoshis: satoshis
       }),
       prevTxId: txid.buffer,
       outputIndex: vout,
-      script: index.bsv.Script.empty()
+      script: bsv.Script.empty()
     })
   )
 
   txRedeemContractV2.addInput(
-    new index.bsv.Transaction.Input({
-      output: new index.bsv.Transaction.Output({
+    new bsv.Transaction.Input({
+      output: new bsv.Transaction.Output({
         script: puzzleContractV2.output.script.toScript(),
         satoshis: satoshis
       }),
       prevTxId: txid.buffer,
       outputIndex: vout,
-      script: index.bsv.Script.empty()
+      script: bsv.Script.empty()
     })
   )
 
-  let sigtype = index.bsv.crypto.Signature.SIGHASH_ALL | index.bsv.crypto.Signature.SIGHASH_FORKID
+  let sigtype = bsv.crypto.Signature.SIGHASH_ALL | bsv.crypto.Signature.SIGHASH_FORKID
 
-  let flags = index.bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
-    index.bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
-    index.bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
-    index.bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
+  let flags = bsv.Script.Interpreter.SCRIPT_VERIFY_MINIMALDATA |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_SIGHASH_FORKID |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_MAGNETIC_OPCODES |
+    bsv.Script.Interpreter.SCRIPT_ENABLE_MONOLITH_OPCODES
 
   let redeemBountyV1 = puzzleBountyV1.redeem(solutionV1, txRedeemBountyV1, 0, sigtype, flags)
   let redeemBountyV2 = puzzleBountyV2.redeem(solutionV2, txRedeemBountyV2, 0, sigtype, flags)
@@ -262,22 +262,22 @@ describe("redeem output test ", () => {
   // we cannot do this test because we don't have a proper interpreter.
   /*
   it("should interpret the script and be valid", async () => {
-    let bn = index.bsv.crypto.BN.fromNumber(satoshis)
+    let bn = bsv.crypto.BN.fromNumber(satoshis)
     expect(puzzleBountyV1.output.script.toScript()).to.not.eql(undefined)
-    index.bsv.Script.Interpreter.MAXIMUM_ELEMENT_SIZE = 0
-    expect(index.bsv.Script.Interpreter().verify(
+    bsv.Script.Interpreter.MAXIMUM_ELEMENT_SIZE = 0
+    expect(bsv.Script.Interpreter().verify(
       redeemBountyV1.toScript(),
       puzzleBountyV1.output.script.toScript(),
       txRedeemBountyV1, 0, flags, bn)).to.eql(true)
-    expect(index.bsv.Script.Interpreter().verify(
+    expect(bsv.Script.Interpreter().verify(
       redeemBountyV2.toScript(),
       puzzleBountyV2.output.script.toScript(),
       txRedeemBountyV2, 0, flags, bn)).to.eql(true)
-    expect(index.bsv.Script.Interpreter().verify(
+    expect(bsv.Script.Interpreter().verify(
       redeemContractV1.toScript(),
       puzzleContractV1.output.script.toScript(),
       txRedeemContractV1, 0, flags, bn)).to.eql(true)
-    expect(index.bsv.Script.Interpreter().verify(
+    expect(bsv.Script.Interpreter().verify(
       redeemContractV2.toScript(),
       puzzleContractV2.output.script.toScript(),
       txRedeemContractV2, 0, flags, bn)).to.eql(true)

@@ -2,7 +2,7 @@
 var expect = require("chai").expect
 var index = require("..")
 
-var bsv = require("../lib/bsv")
+var bsv = require("bsv")
 
 var tx_build = require("../dist/transaction.js")
 
@@ -60,7 +60,7 @@ describe("boost Puzzle createRedeemTransaction", () => {
       ]
     )
 
-    let bsv_tx = index.bsv.Transaction(tx).toJSON()
+    let bsv_tx = bsv.Transaction(tx).toJSON()
 
     // check that the fee is reasonable
     let fee = output.value - bsv_tx.outputs[0].satoshis

@@ -13,7 +13,6 @@ export { UInt32Little } from './fields/uint32Little'
 export { UInt32Big } from './fields/uint32Big'
 export { UInt64Big } from './fields/uint64Big'
 export * as work from './work/proof'
-export * as bsv from './bsv'
 
 export { Job }
 export { Redeem }

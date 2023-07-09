@@ -1,4 +1,4 @@
-import * as bsv from './bsv'
+import * as bsv from 'bsv'
 import * as work from './work/proof'
 import { Utils } from './utils'
 import { UInt32Little } from './fields/uint32Little'
