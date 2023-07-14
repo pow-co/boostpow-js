@@ -1,4 +1,4 @@
-import * as bsv from './bsv'
+import * as bsv from 'bsv'
 import { Job } from './job'
 import { Digest32 } from './fields/digest32'
 

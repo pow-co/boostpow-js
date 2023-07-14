@@ -2,7 +2,7 @@
 var expect = require("chai").expect
 var index = require("..")
 
-var bsv = require("../lib/bsv")
+var bsv = require("bsv")
 var sampleTx1 =
   "010000000174d9f6dc235207fbbcdff7bdc412dcb375eb634da698ed164cc1e9aa1b88729a" +
   "040000006b4830450221008596410738406e0e8589292a0e7a4d960e739025ab1859a3df6c" +
@@ -536,7 +536,7 @@ describe("boost #BoostPowJob createRedeemTransaction", () => {
       "1264UeZnzrjrMdYn1QSED5TCbY8Gd11e23", sats_per_byte
     ).toBuffer()
 
-    let fee = index.bsv.Transaction(tx_job).toJSON().outputs[0].satoshis - index.bsv.Transaction(tx).toJSON().outputs[0].satoshis
+    let fee = bsv.Transaction(tx_job).toJSON().outputs[0].satoshis - bsv.Transaction(tx).toJSON().outputs[0].satoshis
     expect(fee / tx.length >= sats_per_byte).to.eql(true)
     expect(fee / tx.length > sats_per_byte + .1).to.eql(false)
 

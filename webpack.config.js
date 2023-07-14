@@ -25,9 +25,5 @@ module.exports = {
         library: 'boostpow'
     },
     plugins: [new NodePolyfillPlugin(),
-    new CopyPlugin({
-        patterns: [
-            {from: `./lib/bsv`,to: path.resolve(__dirname, `dist/bsv`)}
-        ]
-    })]
+    ]
 };

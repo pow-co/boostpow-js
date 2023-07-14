@@ -2,7 +2,7 @@
 var expect = require("chai").expect
 var index = require("../")
 
-var bsv = require("../dist/bsv")
+var bsv = require("bsv")
 var sampleTx1 =
   "010000000174d9f6dc235207fbbcdff7bdc412dcb375eb634da698ed164cc1e9aa1b88729a" +
   "040000006b4830450221008596410738406e0e8589292a0e7a4d960e739025ab1859a3df6c" +

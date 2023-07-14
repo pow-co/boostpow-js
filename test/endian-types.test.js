@@ -2,7 +2,7 @@
 var expect = require("chai").expect
 var index = require("..")
 
-var bsv = require("../lib/bsv")
+var bsv = require("bsv")
 
 describe("endian types test", () => {
   it("should read and write Int32Little", async () => {

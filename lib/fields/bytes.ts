@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import * as bsv from 'bsv'
 import { Utils } from '../utils'
 import { Digest32 } from './digest32'
 

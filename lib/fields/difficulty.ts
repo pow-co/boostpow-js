@@ -1,4 +1,4 @@
-import * as bsv from '../bsv'
+import * as bsv from 'bsv'
 import { Utils } from '../utils'
 import { UInt32Little } from './uint32Little'
 

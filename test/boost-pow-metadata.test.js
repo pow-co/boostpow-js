@@ -1,7 +1,7 @@
 "use strict"
 var expect = require("chai").expect
 var index = require("../")
-var bsv = require("../lib/bsv")
+var bsv = require("bsv")
 
 describe("boost #BoostPowMetadata tests", () => {
   it("should success create", async () => {
