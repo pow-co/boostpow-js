@@ -264,7 +264,7 @@ export function fromTransaction(t:bsv.Transaction | Buffer | string): ScriptsFou
     }
   const tx: bsv.Transaction = new bsv.Transaction(t)
   let curJobs: Record<number, Job> = {};
-  t.outputs.forEach((output, index) => {
+  tx.outputs.forEach((output, index) => {
     if(output.script && output.script.chunks[0].buf && 
       output.script.chunks[0].buf.toString('hex') === Buffer.from('boostpow', 'utf8').toString('hex')) {
       let job = Job.readScript(output.script, t.hash, index, output.satoshis);
@@ -274,7 +274,7 @@ export function fromTransaction(t:bsv.Transaction | Buffer | string): ScriptsFou
     }
   });
   let curRedemptions:Record<string, Redeem> = {};
-  t.inputs.forEach((input, index) => {
+  tx.inputs.forEach((input, index) => {
     try {
       let redeem = Redeem.fromScript(input.script, t.hash, index, input.prevTxId.toString('hex'), input.outputIndex);
       if(redeem) {
